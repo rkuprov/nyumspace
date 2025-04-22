@@ -2,16 +2,24 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"nyum/pkg/daemon"
-	"time"
 )
 
 func main() {
-	daemon.Run(func(ctx context.Context) error {
-		fmt.Println("my awesome work function")
-		time.Sleep(2 * time.Second)
-		return errors.New("something bad happened")
+	daemon.Run(func(ctx context.Context, d daemon.Daemon) error {
+		type Post struct {
+			ID    int
+			Title string
+			Body  string
+		}
+		var post Post
+		err := d.DB.QueryRow(ctx, "select * from post where id = 1").Scan(&post.ID, &post.Title, &post.Body)
+		if err != nil {
+			return err
+		}
+		fmt.Println(post)
+
+		return nil
 	})
 }
