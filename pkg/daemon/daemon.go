@@ -42,7 +42,7 @@ func Run(work workFunc) {
 		errChan <- err
 	}
 
-	d, err := newDaemon(ctx, cfg)
+	d, doneFuncs, err := newDaemon(ctx, cfg)
 	if err != nil {
 		errChan <- err
 
@@ -50,6 +50,7 @@ func Run(work workFunc) {
 
 	// Start a goroutine to simulate some work
 	go func() {
+		defer recoverDaemonPanic(errChan)
 		err := work(ctx, d)
 		if err != nil {
 			errChan <- err
@@ -66,27 +67,36 @@ func Run(work workFunc) {
 		log.Println("Context canceled, shutting down...")
 	}
 
+	log.Println("Gracefully shutting down...")
+	for _, done := range doneFuncs {
+		done()
+	}
+
 	log.Println("Daemon stopped.")
 }
 
-func newDaemon(ctx context.Context, cfg config.Cfg) (Daemon, error) {
+type closers = []func()
+
+func newDaemon(ctx context.Context, cfg config.Cfg) (Daemon, closers, error) {
+	var doneFuncs closers
 	connString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
 		cfg.PG.User, cfg.PG.Password, cfg.PG.Host, cfg.PG.Port, cfg.PG.DbName)
 
 	dbpool, err := pgxpool.New(ctx, connString)
 	if err != nil {
-		return Daemon{}, fmt.Errorf("unable to create connection pool: %w", err)
+		return Daemon{}, nil, fmt.Errorf("unable to create connection pool: %w", err)
 	}
 
 	// Verify the connection
 	if err := dbpool.Ping(ctx); err != nil {
 		dbpool.Close()
-		return Daemon{}, fmt.Errorf("unable to ping database: %w", err)
+		return Daemon{}, nil, fmt.Errorf("unable to ping database: %w", err)
 	}
 
+	doneFuncs = append(doneFuncs, dbpool.Close)
 	log.Println("Successfully connected to PostgreSQL")
 
-	return Daemon{DB: dbpool}, nil
+	return Daemon{DB: dbpool}, doneFuncs, nil
 }
 
 func applyDBMigrations(ctx context.Context, cfg config.Cfg) error {
@@ -115,4 +125,11 @@ func applyDBMigrations(ctx context.Context, cfg config.Cfg) error {
 	}
 	log.Println("Migrations applied successfully")
 	return nil
+}
+
+func recoverDaemonPanic(errChan chan error) {
+	if r := recover(); r != nil {
+		log.Printf("Daemon panicked: %v", r)
+		errChan <- fmt.Errorf("panic: %v", r)
+	}
 }
