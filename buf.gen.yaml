@@ -1,0 +1,16 @@
+version: v2
+managed:
+  enabled: true
+  override:
+    - file_option: go_package_prefix
+      value: "github.com/rkuprov/nyumspace/pkg/gen/nyumpb"
+
+plugins:
+  - remote: buf.build/protocolbuffers/go
+    out: pkg/gen/nyumpb
+    opt: paths=source_relative
+  - remote: buf.build/connectrpc/go
+    out: pkg/gen/nyumpb
+    opt: paths=source_relative
+inputs:
+  - directory: pkg/proto

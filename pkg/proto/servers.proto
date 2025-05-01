@@ -1,0 +1,16 @@
+syntax = "proto3";
+package nyum;
+import "home.proto";
+import "user.proto";
+
+service ServerService {
+  rpc RegisterUser (UserRegistrationRequest) returns (UserRegistrationResponse);
+  rpc GetUser (UserRequest) returns (UserResponse);
+  rpc UpdateUser (UserUpdateRequest) returns (UserUpdateResponse);
+  rpc DeleteUser (UserDeleteRequest) returns (UserDeleteResponse);
+
+  rpc AddHome (HomeCreationRequest) returns (HomeCreationResponse);
+  rpc GetHome (HomeRequest) returns (HomeResponse);
+  rpc UpdateHome (HomeUpdateRequest) returns (HomeUpdateResponse);
+  rpc DeleteHome (HomeDeleteRequest) returns (HomeDeleteResponse);
+}

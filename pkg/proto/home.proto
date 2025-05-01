@@ -1,0 +1,94 @@
+syntax = "proto3";
+package nyum;
+
+// Home-related message types
+message Room {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  int32 floor = 4;
+}
+
+message Appliance {
+  string id = 1;
+  string name = 2;
+  string type = 3;
+  Room location = 4;
+  string model = 5;
+  string manufacturer = 6;
+  string serial_number = 7;
+  string part_number = 8;
+}
+
+message Code {
+  string id = 1;
+  string name = 2;
+  string value = 3;
+  string type = 4;  // e.g., "wifi", "alarm", "gate"
+  string expires_at = 5;
+}
+
+// HomeCreation messages
+message HomeCreationRequest {
+  string owner_id = 1;
+  string name = 2;
+  string address = 3;
+  string street_address_1 = 4;
+  string street_address_2 = 5;
+  string city = 6;
+  string state = 7;
+  string zip_code = 8;
+  string country = 9;
+
+  repeated Room rooms = 10;
+  repeated Appliance appliances = 11;
+}
+
+message HomeCreationResponse {
+  string home_id = 1;
+  string message = 2;
+  bool success = 3;
+}
+
+// GetHome messages
+message HomeRequest {
+  string home_id = 1;
+}
+
+message HomeResponse {
+  string home_id = 1;
+  string owner_id = 2;
+  string name = 3;
+  string address = 4;
+  repeated Room rooms = 5;
+  repeated Appliance appliances = 6;
+  repeated Code codes = 7;
+  string created_at = 8;
+  string updated_at = 9;
+}
+
+// UpdateHome messages
+message HomeUpdateRequest {
+  string home_id = 1;
+  optional string name = 2;
+  optional string address = 3;
+  optional string owner_id = 4;
+  repeated Room rooms = 5;
+  repeated Appliance appliances = 6;
+  repeated Code codes = 7;
+}
+
+message HomeUpdateResponse {
+  string message = 1;
+  bool success = 2;
+}
+
+// DeleteHome messages
+message HomeDeleteRequest {
+  string home_id = 1;
+}
+
+message HomeDeleteResponse {
+  string message = 1;
+  bool success = 2;
+}
