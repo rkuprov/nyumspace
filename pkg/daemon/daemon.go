@@ -3,13 +3,15 @@ package daemon
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgxpool"
-	_ "github.com/jackc/pgx/v5/stdlib"
 	"log"
-	"nyum/pkg/config"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/jackc/pgx/v5/stdlib"
+
+	"github.com/rkuprov/nyumspace/pkg/config"
 )
 
 type Daemon struct {
