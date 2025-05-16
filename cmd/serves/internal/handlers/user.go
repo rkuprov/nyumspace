@@ -2,6 +2,9 @@ package handlers
 
 import (
 	"context"
+	"fmt"
+	"github.com/rkuprov/nyumspace/cmd/serves/internal/sql"
+	"golang.org/x/crypto/bcrypt"
 
 	"connectrpc.com/connect"
 
@@ -11,9 +14,28 @@ import (
 // RegisterUser(context.Context, *connect.Request[nyumpb.UserRegistrationRequest]) (*connect.Response[nyumpb.UserRegistrationResponse], error)
 
 // User-related methods
-func (s *ServerHandler) RegisterUser(ctx context.Context, req *connect.Request[nyumpb.UserRegistrationRequest]) (*connect.Response[nyumpb.UserRegistrationResponse], error) {
-	// Implementation goes here
-	return &connect.Response[nyumpb.UserRegistrationResponse]{}, nil
+
+// RegisterUser registers a new user in the system
+func (s *ServerHandler) RegisterUser(
+	ctx context.Context,
+	req *connect.Request[nyumpb.UserRegistrationRequest],
+) (*connect.Response[nyumpb.UserRegistrationResponse], error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(req.Msg.GetPassword()), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+	row := s.db.QueryRow(ctx, sql.RegisterUser, req.Msg.GetUsername(), req.Msg.GetEmail(), string(hash))
+	var id int
+	if err = row.Scan(&id); err != nil {
+		return nil, connect.NewError(connect.CodeInternal, err)
+	}
+
+	return &connect.Response[nyumpb.UserRegistrationResponse]{
+		Msg: &nyumpb.UserRegistrationResponse{
+			Success: true,
+			Message: fmt.Sprintf("User %s registered successfully with ID: %d", req.Msg.GetUsername(), id),
+		},
+	}, nil
 }
 
 func (s *ServerHandler) GetUser(ctx context.Context, req *connect.Request[nyumpb.UserRequest]) (*connect.Response[nyumpb.UserResponse], error) {
