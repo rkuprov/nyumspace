@@ -1,9 +1,10 @@
 package config
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -29,7 +30,10 @@ func NewConfig() (Cfg, error) {
 	if err != nil {
 		return Cfg{}, err
 	}
-	err = godotenv.Load(filepath.Join(wd, "..", "..", "deployments", "env", "local.env"))
+	parts := strings.Split(wd, string(filepath.Separator))
+	ind := slices.Index(parts, "nyumspace")
+	parts = parts[0 : ind+1]
+	err = godotenv.Load(string(filepath.Separator) + filepath.Join(append(parts, "deployments", "env", "local.env")...))
 	if err != nil {
 		return Cfg{}, err
 	}
@@ -46,8 +50,6 @@ func NewConfig() (Cfg, error) {
 			Port: os.Getenv("HTTP_PORT"),
 		},
 	}
-
-	fmt.Println(cfg)
 
 	return cfg, nil
 }
