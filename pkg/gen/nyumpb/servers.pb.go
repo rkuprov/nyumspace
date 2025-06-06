@@ -26,14 +26,17 @@ const file_servers_proto_rawDesc = "" +
 	"\n" +
 	"\rservers.proto\x12\x04nyum\x1a\n" +
 	"home.proto\x1a\n" +
-	"user.proto2\x88\x04\n" +
+	"user.proto2\x87\x05\n" +
 	"\rServerService\x12M\n" +
 	"\fRegisterUser\x12\x1d.nyum.UserRegistrationRequest\x1a\x1e.nyum.UserRegistrationResponse\x120\n" +
 	"\aGetUser\x12\x11.nyum.UserRequest\x1a\x12.nyum.UserResponse\x12?\n" +
 	"\n" +
 	"UpdateUser\x12\x17.nyum.UserUpdateRequest\x1a\x18.nyum.UserUpdateResponse\x12?\n" +
 	"\n" +
-	"DeleteUser\x12\x17.nyum.UserDeleteRequest\x1a\x18.nyum.UserDeleteResponse\x12@\n" +
+	"DeleteUser\x12\x17.nyum.UserDeleteRequest\x1a\x18.nyum.UserDeleteResponse\x12<\n" +
+	"\tLoginUser\x12\x16.nyum.UserLoginRequest\x1a\x17.nyum.UserLoginResponse\x12?\n" +
+	"\n" +
+	"LogoutUser\x12\x17.nyum.UserLogoutRequest\x1a\x18.nyum.UserLogoutResponse\x12@\n" +
 	"\aAddHome\x12\x19.nyum.HomeCreationRequest\x1a\x1a.nyum.HomeCreationResponse\x120\n" +
 	"\aGetHome\x12\x11.nyum.HomeRequest\x1a\x12.nyum.HomeResponse\x12?\n" +
 	"\n" +
@@ -47,38 +50,46 @@ var file_servers_proto_goTypes = []any{
 	(*UserRequest)(nil),              // 1: nyum.UserRequest
 	(*UserUpdateRequest)(nil),        // 2: nyum.UserUpdateRequest
 	(*UserDeleteRequest)(nil),        // 3: nyum.UserDeleteRequest
-	(*HomeCreationRequest)(nil),      // 4: nyum.HomeCreationRequest
-	(*HomeRequest)(nil),              // 5: nyum.HomeRequest
-	(*HomeUpdateRequest)(nil),        // 6: nyum.HomeUpdateRequest
-	(*HomeDeleteRequest)(nil),        // 7: nyum.HomeDeleteRequest
-	(*UserRegistrationResponse)(nil), // 8: nyum.UserRegistrationResponse
-	(*UserResponse)(nil),             // 9: nyum.UserResponse
-	(*UserUpdateResponse)(nil),       // 10: nyum.UserUpdateResponse
-	(*UserDeleteResponse)(nil),       // 11: nyum.UserDeleteResponse
-	(*HomeCreationResponse)(nil),     // 12: nyum.HomeCreationResponse
-	(*HomeResponse)(nil),             // 13: nyum.HomeResponse
-	(*HomeUpdateResponse)(nil),       // 14: nyum.HomeUpdateResponse
-	(*HomeDeleteResponse)(nil),       // 15: nyum.HomeDeleteResponse
+	(*UserLoginRequest)(nil),         // 4: nyum.UserLoginRequest
+	(*UserLogoutRequest)(nil),        // 5: nyum.UserLogoutRequest
+	(*HomeCreationRequest)(nil),      // 6: nyum.HomeCreationRequest
+	(*HomeRequest)(nil),              // 7: nyum.HomeRequest
+	(*HomeUpdateRequest)(nil),        // 8: nyum.HomeUpdateRequest
+	(*HomeDeleteRequest)(nil),        // 9: nyum.HomeDeleteRequest
+	(*UserRegistrationResponse)(nil), // 10: nyum.UserRegistrationResponse
+	(*UserResponse)(nil),             // 11: nyum.UserResponse
+	(*UserUpdateResponse)(nil),       // 12: nyum.UserUpdateResponse
+	(*UserDeleteResponse)(nil),       // 13: nyum.UserDeleteResponse
+	(*UserLoginResponse)(nil),        // 14: nyum.UserLoginResponse
+	(*UserLogoutResponse)(nil),       // 15: nyum.UserLogoutResponse
+	(*HomeCreationResponse)(nil),     // 16: nyum.HomeCreationResponse
+	(*HomeResponse)(nil),             // 17: nyum.HomeResponse
+	(*HomeUpdateResponse)(nil),       // 18: nyum.HomeUpdateResponse
+	(*HomeDeleteResponse)(nil),       // 19: nyum.HomeDeleteResponse
 }
 var file_servers_proto_depIdxs = []int32{
 	0,  // 0: nyum.ServerService.RegisterUser:input_type -> nyum.UserRegistrationRequest
 	1,  // 1: nyum.ServerService.GetUser:input_type -> nyum.UserRequest
 	2,  // 2: nyum.ServerService.UpdateUser:input_type -> nyum.UserUpdateRequest
 	3,  // 3: nyum.ServerService.DeleteUser:input_type -> nyum.UserDeleteRequest
-	4,  // 4: nyum.ServerService.AddHome:input_type -> nyum.HomeCreationRequest
-	5,  // 5: nyum.ServerService.GetHome:input_type -> nyum.HomeRequest
-	6,  // 6: nyum.ServerService.UpdateHome:input_type -> nyum.HomeUpdateRequest
-	7,  // 7: nyum.ServerService.DeleteHome:input_type -> nyum.HomeDeleteRequest
-	8,  // 8: nyum.ServerService.RegisterUser:output_type -> nyum.UserRegistrationResponse
-	9,  // 9: nyum.ServerService.GetUser:output_type -> nyum.UserResponse
-	10, // 10: nyum.ServerService.UpdateUser:output_type -> nyum.UserUpdateResponse
-	11, // 11: nyum.ServerService.DeleteUser:output_type -> nyum.UserDeleteResponse
-	12, // 12: nyum.ServerService.AddHome:output_type -> nyum.HomeCreationResponse
-	13, // 13: nyum.ServerService.GetHome:output_type -> nyum.HomeResponse
-	14, // 14: nyum.ServerService.UpdateHome:output_type -> nyum.HomeUpdateResponse
-	15, // 15: nyum.ServerService.DeleteHome:output_type -> nyum.HomeDeleteResponse
-	8,  // [8:16] is the sub-list for method output_type
-	0,  // [0:8] is the sub-list for method input_type
+	4,  // 4: nyum.ServerService.LoginUser:input_type -> nyum.UserLoginRequest
+	5,  // 5: nyum.ServerService.LogoutUser:input_type -> nyum.UserLogoutRequest
+	6,  // 6: nyum.ServerService.AddHome:input_type -> nyum.HomeCreationRequest
+	7,  // 7: nyum.ServerService.GetHome:input_type -> nyum.HomeRequest
+	8,  // 8: nyum.ServerService.UpdateHome:input_type -> nyum.HomeUpdateRequest
+	9,  // 9: nyum.ServerService.DeleteHome:input_type -> nyum.HomeDeleteRequest
+	10, // 10: nyum.ServerService.RegisterUser:output_type -> nyum.UserRegistrationResponse
+	11, // 11: nyum.ServerService.GetUser:output_type -> nyum.UserResponse
+	12, // 12: nyum.ServerService.UpdateUser:output_type -> nyum.UserUpdateResponse
+	13, // 13: nyum.ServerService.DeleteUser:output_type -> nyum.UserDeleteResponse
+	14, // 14: nyum.ServerService.LoginUser:output_type -> nyum.UserLoginResponse
+	15, // 15: nyum.ServerService.LogoutUser:output_type -> nyum.UserLogoutResponse
+	16, // 16: nyum.ServerService.AddHome:output_type -> nyum.HomeCreationResponse
+	17, // 17: nyum.ServerService.GetHome:output_type -> nyum.HomeResponse
+	18, // 18: nyum.ServerService.UpdateHome:output_type -> nyum.HomeUpdateResponse
+	19, // 19: nyum.ServerService.DeleteHome:output_type -> nyum.HomeDeleteResponse
+	10, // [10:20] is the sub-list for method output_type
+	0,  // [0:10] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name
 	0,  // [0:0] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name

@@ -9,6 +9,9 @@ service ServerService {
   rpc UpdateUser (UserUpdateRequest) returns (UserUpdateResponse);
   rpc DeleteUser (UserDeleteRequest) returns (UserDeleteResponse);
 
+  rpc LoginUser (UserLoginRequest) returns (UserLoginResponse);
+  rpc LogoutUser (UserLogoutRequest) returns (UserLogoutResponse);
+
   rpc AddHome (HomeCreationRequest) returns (HomeCreationResponse);
   rpc GetHome (HomeRequest) returns (HomeResponse);
   rpc UpdateHome (HomeUpdateRequest) returns (HomeUpdateResponse);

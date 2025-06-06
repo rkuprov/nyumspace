@@ -48,3 +48,26 @@ message UserDeleteResponse {
   string message = 1;
   bool success = 2;
 }
+
+// Login messages
+message UserLoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message UserLoginResponse {
+  string session_token = 1;
+  bool success = 2;
+  string message = 3;
+  string user_id = 4;
+}
+
+// Logout messages
+message UserLogoutRequest {
+  string session_token = 1;
+}
+
+message UserLogoutResponse {
+  bool success = 2;
+  string message = 3;
+}

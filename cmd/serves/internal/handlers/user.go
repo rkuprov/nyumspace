@@ -2,7 +2,10 @@ package handlers
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
+	"time"
 
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/sql"
 	"golang.org/x/crypto/bcrypt"
@@ -78,6 +81,55 @@ func (s *ServerHandler) DeleteUser(ctx context.Context, req *connect.Request[nyu
 		Msg: &nyumpb.UserDeleteResponse{
 			Success: true,
 			Message: fmt.Sprintf("User with ID %d deleted successfully", id),
+		},
+	}, nil
+}
+
+func (s *ServerHandler) LoginUser(ctx context.Context, req *connect.Request[nyumpb.UserLoginRequest]) (*connect.Response[nyumpb.UserLoginResponse], error) {
+	var userID, hashedPassword string
+
+	row := s.db.QueryRow(ctx, sql.GetUserByEmail, req.Msg.GetEmail())
+	if err := row.Scan(&userID, &hashedPassword); err != nil {
+		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("user not found: %w", err))
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(req.Msg.GetPassword())); err != nil {
+		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("invalid password: %w", err))
+	}
+
+	tokenBytes := make([]byte, 16)
+	if _, err := rand.Read(tokenBytes); err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to generate session token: %w", err))
+	}
+	sessionToken := hex.EncodeToString(tokenBytes)
+
+	expiresAt := time.Now().Add(24 * time.Hour)
+
+	_, err := s.db.Exec(ctx, sql.CreateSession, sessionToken, userID, expiresAt)
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to create session: %w", err))
+	}
+
+	return &connect.Response[nyumpb.UserLoginResponse]{
+		Msg: &nyumpb.UserLoginResponse{
+			Success:      true,
+			Message:      "Login successful",
+			SessionToken: sessionToken,
+			UserId:       fmt.Sprintf("%d", userID),
+		},
+	}, nil
+}
+
+func (s *ServerHandler) LogoutUser(ctx context.Context, req *connect.Request[nyumpb.UserLogoutRequest]) (*connect.Response[nyumpb.UserLogoutResponse], error) {
+	_, err := s.db.Exec(ctx, sql.DeleteSession, req.Msg.GetSessionToken())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete session: %w", err))
+	}
+
+	return &connect.Response[nyumpb.UserLogoutResponse]{
+		Msg: &nyumpb.UserLogoutResponse{
+			Success: true,
+			Message: "Logout successful",
 		},
 	}, nil
 }

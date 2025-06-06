@@ -44,6 +44,11 @@ const (
 	// ServerServiceDeleteUserProcedure is the fully-qualified name of the ServerService's DeleteUser
 	// RPC.
 	ServerServiceDeleteUserProcedure = "/nyum.ServerService/DeleteUser"
+	// ServerServiceLoginUserProcedure is the fully-qualified name of the ServerService's LoginUser RPC.
+	ServerServiceLoginUserProcedure = "/nyum.ServerService/LoginUser"
+	// ServerServiceLogoutUserProcedure is the fully-qualified name of the ServerService's LogoutUser
+	// RPC.
+	ServerServiceLogoutUserProcedure = "/nyum.ServerService/LogoutUser"
 	// ServerServiceAddHomeProcedure is the fully-qualified name of the ServerService's AddHome RPC.
 	ServerServiceAddHomeProcedure = "/nyum.ServerService/AddHome"
 	// ServerServiceGetHomeProcedure is the fully-qualified name of the ServerService's GetHome RPC.
@@ -62,6 +67,8 @@ type ServerServiceClient interface {
 	GetUser(context.Context, *connect.Request[nyumpb.UserRequest]) (*connect.Response[nyumpb.UserResponse], error)
 	UpdateUser(context.Context, *connect.Request[nyumpb.UserUpdateRequest]) (*connect.Response[nyumpb.UserUpdateResponse], error)
 	DeleteUser(context.Context, *connect.Request[nyumpb.UserDeleteRequest]) (*connect.Response[nyumpb.UserDeleteResponse], error)
+	LoginUser(context.Context, *connect.Request[nyumpb.UserLoginRequest]) (*connect.Response[nyumpb.UserLoginResponse], error)
+	LogoutUser(context.Context, *connect.Request[nyumpb.UserLogoutRequest]) (*connect.Response[nyumpb.UserLogoutResponse], error)
 	AddHome(context.Context, *connect.Request[nyumpb.HomeCreationRequest]) (*connect.Response[nyumpb.HomeCreationResponse], error)
 	GetHome(context.Context, *connect.Request[nyumpb.HomeRequest]) (*connect.Response[nyumpb.HomeResponse], error)
 	UpdateHome(context.Context, *connect.Request[nyumpb.HomeUpdateRequest]) (*connect.Response[nyumpb.HomeUpdateResponse], error)
@@ -103,6 +110,18 @@ func NewServerServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 			connect.WithSchema(serverServiceMethods.ByName("DeleteUser")),
 			connect.WithClientOptions(opts...),
 		),
+		loginUser: connect.NewClient[nyumpb.UserLoginRequest, nyumpb.UserLoginResponse](
+			httpClient,
+			baseURL+ServerServiceLoginUserProcedure,
+			connect.WithSchema(serverServiceMethods.ByName("LoginUser")),
+			connect.WithClientOptions(opts...),
+		),
+		logoutUser: connect.NewClient[nyumpb.UserLogoutRequest, nyumpb.UserLogoutResponse](
+			httpClient,
+			baseURL+ServerServiceLogoutUserProcedure,
+			connect.WithSchema(serverServiceMethods.ByName("LogoutUser")),
+			connect.WithClientOptions(opts...),
+		),
 		addHome: connect.NewClient[nyumpb.HomeCreationRequest, nyumpb.HomeCreationResponse](
 			httpClient,
 			baseURL+ServerServiceAddHomeProcedure,
@@ -136,6 +155,8 @@ type serverServiceClient struct {
 	getUser      *connect.Client[nyumpb.UserRequest, nyumpb.UserResponse]
 	updateUser   *connect.Client[nyumpb.UserUpdateRequest, nyumpb.UserUpdateResponse]
 	deleteUser   *connect.Client[nyumpb.UserDeleteRequest, nyumpb.UserDeleteResponse]
+	loginUser    *connect.Client[nyumpb.UserLoginRequest, nyumpb.UserLoginResponse]
+	logoutUser   *connect.Client[nyumpb.UserLogoutRequest, nyumpb.UserLogoutResponse]
 	addHome      *connect.Client[nyumpb.HomeCreationRequest, nyumpb.HomeCreationResponse]
 	getHome      *connect.Client[nyumpb.HomeRequest, nyumpb.HomeResponse]
 	updateHome   *connect.Client[nyumpb.HomeUpdateRequest, nyumpb.HomeUpdateResponse]
@@ -160,6 +181,16 @@ func (c *serverServiceClient) UpdateUser(ctx context.Context, req *connect.Reque
 // DeleteUser calls nyum.ServerService.DeleteUser.
 func (c *serverServiceClient) DeleteUser(ctx context.Context, req *connect.Request[nyumpb.UserDeleteRequest]) (*connect.Response[nyumpb.UserDeleteResponse], error) {
 	return c.deleteUser.CallUnary(ctx, req)
+}
+
+// LoginUser calls nyum.ServerService.LoginUser.
+func (c *serverServiceClient) LoginUser(ctx context.Context, req *connect.Request[nyumpb.UserLoginRequest]) (*connect.Response[nyumpb.UserLoginResponse], error) {
+	return c.loginUser.CallUnary(ctx, req)
+}
+
+// LogoutUser calls nyum.ServerService.LogoutUser.
+func (c *serverServiceClient) LogoutUser(ctx context.Context, req *connect.Request[nyumpb.UserLogoutRequest]) (*connect.Response[nyumpb.UserLogoutResponse], error) {
+	return c.logoutUser.CallUnary(ctx, req)
 }
 
 // AddHome calls nyum.ServerService.AddHome.
@@ -188,6 +219,8 @@ type ServerServiceHandler interface {
 	GetUser(context.Context, *connect.Request[nyumpb.UserRequest]) (*connect.Response[nyumpb.UserResponse], error)
 	UpdateUser(context.Context, *connect.Request[nyumpb.UserUpdateRequest]) (*connect.Response[nyumpb.UserUpdateResponse], error)
 	DeleteUser(context.Context, *connect.Request[nyumpb.UserDeleteRequest]) (*connect.Response[nyumpb.UserDeleteResponse], error)
+	LoginUser(context.Context, *connect.Request[nyumpb.UserLoginRequest]) (*connect.Response[nyumpb.UserLoginResponse], error)
+	LogoutUser(context.Context, *connect.Request[nyumpb.UserLogoutRequest]) (*connect.Response[nyumpb.UserLogoutResponse], error)
 	AddHome(context.Context, *connect.Request[nyumpb.HomeCreationRequest]) (*connect.Response[nyumpb.HomeCreationResponse], error)
 	GetHome(context.Context, *connect.Request[nyumpb.HomeRequest]) (*connect.Response[nyumpb.HomeResponse], error)
 	UpdateHome(context.Context, *connect.Request[nyumpb.HomeUpdateRequest]) (*connect.Response[nyumpb.HomeUpdateResponse], error)
@@ -225,6 +258,18 @@ func NewServerServiceHandler(svc ServerServiceHandler, opts ...connect.HandlerOp
 		connect.WithSchema(serverServiceMethods.ByName("DeleteUser")),
 		connect.WithHandlerOptions(opts...),
 	)
+	serverServiceLoginUserHandler := connect.NewUnaryHandler(
+		ServerServiceLoginUserProcedure,
+		svc.LoginUser,
+		connect.WithSchema(serverServiceMethods.ByName("LoginUser")),
+		connect.WithHandlerOptions(opts...),
+	)
+	serverServiceLogoutUserHandler := connect.NewUnaryHandler(
+		ServerServiceLogoutUserProcedure,
+		svc.LogoutUser,
+		connect.WithSchema(serverServiceMethods.ByName("LogoutUser")),
+		connect.WithHandlerOptions(opts...),
+	)
 	serverServiceAddHomeHandler := connect.NewUnaryHandler(
 		ServerServiceAddHomeProcedure,
 		svc.AddHome,
@@ -259,6 +304,10 @@ func NewServerServiceHandler(svc ServerServiceHandler, opts ...connect.HandlerOp
 			serverServiceUpdateUserHandler.ServeHTTP(w, r)
 		case ServerServiceDeleteUserProcedure:
 			serverServiceDeleteUserHandler.ServeHTTP(w, r)
+		case ServerServiceLoginUserProcedure:
+			serverServiceLoginUserHandler.ServeHTTP(w, r)
+		case ServerServiceLogoutUserProcedure:
+			serverServiceLogoutUserHandler.ServeHTTP(w, r)
 		case ServerServiceAddHomeProcedure:
 			serverServiceAddHomeHandler.ServeHTTP(w, r)
 		case ServerServiceGetHomeProcedure:
@@ -290,6 +339,14 @@ func (UnimplementedServerServiceHandler) UpdateUser(context.Context, *connect.Re
 
 func (UnimplementedServerServiceHandler) DeleteUser(context.Context, *connect.Request[nyumpb.UserDeleteRequest]) (*connect.Response[nyumpb.UserDeleteResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("nyum.ServerService.DeleteUser is not implemented"))
+}
+
+func (UnimplementedServerServiceHandler) LoginUser(context.Context, *connect.Request[nyumpb.UserLoginRequest]) (*connect.Response[nyumpb.UserLoginResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("nyum.ServerService.LoginUser is not implemented"))
+}
+
+func (UnimplementedServerServiceHandler) LogoutUser(context.Context, *connect.Request[nyumpb.UserLogoutRequest]) (*connect.Response[nyumpb.UserLogoutResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("nyum.ServerService.LogoutUser is not implemented"))
 }
 
 func (UnimplementedServerServiceHandler) AddHome(context.Context, *connect.Request[nyumpb.HomeCreationRequest]) (*connect.Response[nyumpb.HomeCreationResponse], error) {
