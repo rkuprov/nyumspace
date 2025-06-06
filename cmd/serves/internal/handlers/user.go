@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"fmt"
+
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/sql"
 	"golang.org/x/crypto/bcrypt"
 
@@ -39,16 +40,44 @@ func (s *ServerHandler) RegisterUser(
 }
 
 func (s *ServerHandler) GetUser(ctx context.Context, req *connect.Request[nyumpb.UserRequest]) (*connect.Response[nyumpb.UserResponse], error) {
-	// Implementation goes here
-	return &connect.Response[nyumpb.UserResponse]{}, nil
+	row := s.db.QueryRow(ctx, sql.GetUser, req.Msg.GetUserId())
+	var id, name, email string
+	if err := row.Scan(&id, &name, &email); err != nil {
+		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("user not found: %w", err))
+	}
+	return &connect.Response[nyumpb.UserResponse]{
+		Msg: &nyumpb.UserResponse{
+			UserId:   id,
+			Username: name,
+			Email:    email,
+		},
+	}, nil
 }
 
 func (s *ServerHandler) UpdateUser(ctx context.Context, req *connect.Request[nyumpb.UserUpdateRequest]) (*connect.Response[nyumpb.UserUpdateResponse], error) {
-	// Implementation goes here
-	return &connect.Response[nyumpb.UserUpdateResponse]{}, nil
+	row := s.db.QueryRow(ctx, sql.UpdateUser, req.Msg.GetUserId(), req.Msg.GetUsername(), req.Msg.GetEmail())
+	var id int32
+	if err := row.Scan(&id); err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to update user: %w", err))
+	}
+	return &connect.Response[nyumpb.UserUpdateResponse]{
+		Msg: &nyumpb.UserUpdateResponse{
+			Success: true,
+			Message: fmt.Sprintf("User with ID %d updated successfully", id),
+		},
+	}, nil
 }
 
 func (s *ServerHandler) DeleteUser(ctx context.Context, req *connect.Request[nyumpb.UserDeleteRequest]) (*connect.Response[nyumpb.UserDeleteResponse], error) {
-	// Implementation goes here
-	return &connect.Response[nyumpb.UserDeleteResponse]{}, nil
+	row := s.db.QueryRow(ctx, sql.DeleteUser, req.Msg.GetUserId())
+	var id int32
+	if err := row.Scan(&id); err != nil {
+		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete user: %w", err))
+	}
+	return &connect.Response[nyumpb.UserDeleteResponse]{
+		Msg: &nyumpb.UserDeleteResponse{
+			Success: true,
+			Message: fmt.Sprintf("User with ID %d deleted successfully", id),
+		},
+	}, nil
 }
