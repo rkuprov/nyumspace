@@ -11,7 +11,7 @@ in the same directory.
 
 2) Run Migrations
 ```bash
-  goose migrate {up/down}
+  goose {up/down}
 ```
 
 ``` bash

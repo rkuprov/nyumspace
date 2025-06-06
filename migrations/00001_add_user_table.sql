@@ -17,15 +17,32 @@ CREATE TABLE homes (
     city VARCHAR(100) NOT NULL,
     state VARCHAR(100) NOT NULL,
     zip_code VARCHAR(20) NOT NULL,
+    description TEXT,
+    tags TEXT[],
+    image VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (owner_id) REFERENCES users(id)
 );
 CREATE INDEX index_owner_id ON homes(owner_id);
+CREATE INDEX index_state ON homes(state);
+CREATE INDEX index_city ON homes(city);
+CREATE INDEX index_tags ON homes USING GIN (tags);
+
+CREATE TABLE sessions (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    session_token VARCHAR(255) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
 
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
+DROP TABLE homes;
+DROP TABLE sessions;
 DROP TABLE users;
 -- +goose StatementEnd
