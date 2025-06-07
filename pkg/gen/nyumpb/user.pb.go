@@ -85,7 +85,8 @@ func (x *UserRegistrationRequest) GetEmail() string {
 type UserRegistrationResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
-	Success       bool                   `protobuf:"varint,2,opt,name=success,proto3" json:"success,omitempty"`
+	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Success       bool                   `protobuf:"varint,3,opt,name=success,proto3" json:"success,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -123,6 +124,13 @@ func (*UserRegistrationResponse) Descriptor() ([]byte, []int) {
 func (x *UserRegistrationResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
+	}
+	return ""
+}
+
+func (x *UserRegistrationResponse) GetUserId() string {
+	if x != nil {
+		return x.UserId
 	}
 	return ""
 }
@@ -700,10 +708,11 @@ const file_user_proto_rawDesc = "" +
 	"\x17UserRegistrationRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x14\n" +
-	"\x05email\x18\x03 \x01(\tR\x05email\"N\n" +
+	"\x05email\x18\x03 \x01(\tR\x05email\"g\n" +
 	"\x18UserRegistrationResponse\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage\x12\x18\n" +
-	"\asuccess\x18\x02 \x01(\bR\asuccess\"&\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x18\n" +
+	"\asuccess\x18\x03 \x01(\bR\asuccess\"&\n" +
 	"\vUserRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\"\x97\x01\n" +
 	"\fUserResponse\x12\x17\n" +

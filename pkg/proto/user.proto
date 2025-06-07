@@ -10,7 +10,8 @@ message UserRegistrationRequest {
 
 message UserRegistrationResponse {
   string message = 1;
-  bool success = 2;
+  string user_id = 2;
+  bool success = 3;
 }
 
 // GetUser messages

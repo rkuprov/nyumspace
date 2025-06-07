@@ -45,4 +45,11 @@ func TestServerHandler_RegisterUser(t *testing.T) {
 		t.Fatalf("failed to register user: %v", err)
 	}
 	assert.True(t, resp.Msg.GetSuccess())
+	id := resp.Msg.GetUserId()
+
+	// Verify in DB
+	var userID string
+	err = pool.QueryRow(context.Background(), "SELECT id FROM users WHERE name = $1", req.Msg.GetUsername()).Scan(&userID)
+	assert.NoError(t, err)
+	assert.Equal(t, id, userID)
 }

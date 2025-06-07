@@ -40,6 +40,7 @@ func (s *ServerHandler) RegisterUser(
 		Msg: &nyumpb.UserRegistrationResponse{
 			Success: true,
 			Message: fmt.Sprintf("User %s registered successfully with ID: %s", req.Msg.GetUsername(), id),
+			UserId:  id,
 		},
 	}, nil
 }
