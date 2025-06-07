@@ -75,15 +75,14 @@ func (s *ServerHandler) UpdateUser(ctx context.Context, req *connect.Request[nyu
 }
 
 func (s *ServerHandler) DeleteUser(ctx context.Context, req *connect.Request[nyumpb.UserDeleteRequest]) (*connect.Response[nyumpb.UserDeleteResponse], error) {
-	row := s.db.QueryRow(ctx, sql.DeleteUser, req.Msg.GetUserId())
-	var id int32
-	if err := row.Scan(&id); err != nil {
+	_, err := s.db.Exec(ctx, sql.DeleteUser, req.Msg.GetUserId())
+	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, fmt.Errorf("failed to delete user: %w", err))
 	}
 	return &connect.Response[nyumpb.UserDeleteResponse]{
 		Msg: &nyumpb.UserDeleteResponse{
 			Success: true,
-			Message: fmt.Sprintf("User with ID %d deleted successfully", id),
+			Message: fmt.Sprintf("User with ID %s deleted successfully", req.Msg.GetUserId()),
 		},
 	}, nil
 }
