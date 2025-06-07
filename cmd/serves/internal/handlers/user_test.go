@@ -45,5 +45,4 @@ func TestServerHandler_RegisterUser(t *testing.T) {
 		t.Fatalf("failed to register user: %v", err)
 	}
 	assert.True(t, resp.Msg.GetSuccess())
-	assert.Equal(t, "User testuser registered successfully with ID: 1", resp.Msg.GetMessage())
 }

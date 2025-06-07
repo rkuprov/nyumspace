@@ -5,8 +5,10 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"log"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/sql"
 	"golang.org/x/crypto/bcrypt"
 
@@ -14,10 +16,6 @@ import (
 
 	"github.com/rkuprov/nyumspace/pkg/gen/nyumpb"
 )
-
-// RegisterUser(context.Context, *connect.Request[nyumpb.UserRegistrationRequest]) (*connect.Response[nyumpb.UserRegistrationResponse], error)
-
-// User-related methods
 
 // RegisterUser registers a new user in the system
 func (s *ServerHandler) RegisterUser(
@@ -28,16 +26,20 @@ func (s *ServerHandler) RegisterUser(
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
-	row := s.db.QueryRow(ctx, sql.RegisterUser, req.Msg.GetUsername(), req.Msg.GetEmail(), string(hash))
-	var id int
+	id := uuid.NewString()
+	row := s.db.QueryRow(ctx, sql.RegisterUser, id, req.Msg.GetUsername(), req.Msg.GetEmail(), string(hash))
 	if err = row.Scan(&id); err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
 
+	log.Printf(
+		"Registered user %s with email %s with hash %s", id, req.Msg.GetEmail(), string(hash),
+	)
+
 	return &connect.Response[nyumpb.UserRegistrationResponse]{
 		Msg: &nyumpb.UserRegistrationResponse{
 			Success: true,
-			Message: fmt.Sprintf("User %s registered successfully with ID: %d", req.Msg.GetUsername(), id),
+			Message: fmt.Sprintf("User %s registered successfully with ID: %s", req.Msg.GetUsername(), id),
 		},
 	}, nil
 }
@@ -115,7 +117,7 @@ func (s *ServerHandler) LoginUser(ctx context.Context, req *connect.Request[nyum
 			Success:      true,
 			Message:      "Login successful",
 			SessionToken: sessionToken,
-			UserId:       fmt.Sprintf("%d", userID),
+			UserId:       fmt.Sprintf("%s", userID),
 		},
 	}, nil
 }

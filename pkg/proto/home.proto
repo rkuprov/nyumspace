@@ -39,9 +39,9 @@ message HomeCreationRequest {
   string state = 7;
   string zip_code = 8;
   string country = 9;
-
-  repeated Room rooms = 10;
-  repeated Appliance appliances = 11;
+  string description = 10;
+  repeated string tags = 11;
+  string image_url = 12;
 }
 
 message HomeCreationResponse {
@@ -73,9 +73,15 @@ message HomeUpdateRequest {
   optional string name = 2;
   optional string address = 3;
   optional string owner_id = 4;
-  repeated Room rooms = 5;
-  repeated Appliance appliances = 6;
-  repeated Code codes = 7;
+  optional string street_address_1 = 5;
+  optional string street_address_2 = 6;
+  optional string city = 7;
+  optional string state = 8;
+  optional string zip_code = 9;
+  optional string country = 10;
+  optional string description = 11;
+  repeated string tags = 12;
+  optional string image_url = 13;
 }
 
 message HomeUpdateResponse {
