@@ -27,7 +27,7 @@ type Daemon struct {
 
 type workFunc = func(context.Context, Daemon) error
 
-func Run(work workFunc) {
+func Run(work workFunc, opts ...DaemonOpt) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -44,7 +44,7 @@ func Run(work workFunc) {
 	}
 
 	// Setup Daemon
-	d, doneFuncs, err := newDaemon(ctx, cfg)
+	d, doneFuncs, err := newDaemon(ctx, cfg, opts...)
 	if err != nil {
 		errChan <- err
 
@@ -89,7 +89,7 @@ func Run(work workFunc) {
 
 type closers = []func()
 
-func newDaemon(ctx context.Context, cfg config.Cfg) (Daemon, closers, error) {
+func newDaemon(ctx context.Context, cfg config.Cfg, opts ...DaemonOpt) (Daemon, closers, error) {
 	var doneFuncs closers
 	connString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s",
 		cfg.PG.User, cfg.PG.Password, cfg.PG.Host, cfg.PG.Port, cfg.PG.DbName)
@@ -116,13 +116,22 @@ func newDaemon(ctx context.Context, cfg config.Cfg) (Daemon, closers, error) {
 			return baseCtx
 		},
 	}
-	log.Printf("Starting HTTP server on %s\n", httpServer.Addr)
 	httpServer.RegisterOnShutdown(cancelInflightRequests)
 
-	return Daemon{
+	d := Daemon{
 		DB:     dbpool,
 		Server: httpServer,
-	}, doneFuncs, nil
+		Router: chi.NewRouter(),
+	}
+
+	for _, opt := range opts {
+		if err := opt(&d); err != nil {
+			return Daemon{}, nil, fmt.Errorf("error applying daemon option: %w", err)
+		}
+	}
+
+	log.Printf("Starting HTTP server on %s\n", httpServer.Addr)
+	return d, doneFuncs, nil
 }
 
 func recoverDaemonPanic(errChan chan error) {
