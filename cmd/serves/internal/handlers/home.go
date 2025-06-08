@@ -67,23 +67,22 @@ func (s *ServerHandler) GetHome(ctx context.Context, req *connect.Request[nyumpb
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("home not found: %w", err))
 	}
 
-	// Construct the address
-	address := fmt.Sprintf("%s, %s, %s %s, %s", streetAddress1, city, state, zipCode, country)
-	if streetAddress2 != "" {
-		address = fmt.Sprintf("%s, %s", streetAddress1, streetAddress2) + address[len(streetAddress1):]
-	}
-
 	return &connect.Response[nyumpb.HomeResponse]{
 		Msg: &nyumpb.HomeResponse{
-			HomeId:     homeID,
-			OwnerId:    ownerID,
-			Name:       name,
-			Address:    address,
-			CreatedAt:  createdAt.Format(time.RFC3339),
-			UpdatedAt:  updatedAt.Format(time.RFC3339),
-			Rooms:      []*nyumpb.Room{},      // Empty for now, would need to fetch from database
-			Appliances: []*nyumpb.Appliance{}, // Empty for now, would need to fetch from database
-			Codes:      []*nyumpb.Code{},      // Empty for now, would need to fetch from database
+			HomeId:          homeID,
+			OwnerId:         ownerID,
+			Name:            name,
+			Description:     description,
+			StreetAddress_1: streetAddress1,
+			StreetAddress_2: streetAddress2,
+			City:            city,
+			State:           state,
+			ZipCode:         zipCode,
+			Country:         country,
+			ImageUrl:        imageURL,
+			Tags:            tags,
+			CreatedAt:       createdAt.Format(time.RFC3339),
+			UpdatedAt:       updatedAt.Format(time.RFC3339),
 		},
 	}, nil
 }

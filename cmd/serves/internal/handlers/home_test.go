@@ -148,11 +148,6 @@ func TestServerHandler_GetHome(t *testing.T) {
 	assert.Equal(t, ownerID, resp2.Msg.GetOwnerId())
 	assert.Equal(t, homeName, resp2.Msg.GetName())
 
-	expectedAddress := fmt.Sprintf("%s, %s, %s, %s %s, %s", street1, street2, city, state, zip, country)
-	if street2 == "" { // Adjust if street2 can be empty and format changes
-		expectedAddress = fmt.Sprintf("%s, %s, %s %s, %s", street1, city, state, zip, country)
-	}
-	assert.Equal(t, expectedAddress, resp2.Msg.GetAddress())
 }
 
 func TestServerHandler_DeleteHome(t *testing.T) {

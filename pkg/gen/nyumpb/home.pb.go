@@ -505,18 +505,23 @@ func (x *HomeRequest) GetHomeId() string {
 }
 
 type HomeResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	HomeId        string                 `protobuf:"bytes,1,opt,name=home_id,json=homeId,proto3" json:"home_id,omitempty"`
-	OwnerId       string                 `protobuf:"bytes,2,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
-	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Address       string                 `protobuf:"bytes,4,opt,name=address,proto3" json:"address,omitempty"`
-	Rooms         []*Room                `protobuf:"bytes,5,rep,name=rooms,proto3" json:"rooms,omitempty"`
-	Appliances    []*Appliance           `protobuf:"bytes,6,rep,name=appliances,proto3" json:"appliances,omitempty"`
-	Codes         []*Code                `protobuf:"bytes,7,rep,name=codes,proto3" json:"codes,omitempty"`
-	CreatedAt     string                 `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     string                 `protobuf:"bytes,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	HomeId          string                 `protobuf:"bytes,1,opt,name=home_id,json=homeId,proto3" json:"home_id,omitempty"`
+	OwnerId         string                 `protobuf:"bytes,2,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
+	Name            string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	StreetAddress_1 string                 `protobuf:"bytes,4,opt,name=street_address_1,json=streetAddress1,proto3" json:"street_address_1,omitempty"`
+	StreetAddress_2 string                 `protobuf:"bytes,5,opt,name=street_address_2,json=streetAddress2,proto3" json:"street_address_2,omitempty"`
+	City            string                 `protobuf:"bytes,6,opt,name=city,proto3" json:"city,omitempty"`
+	State           string                 `protobuf:"bytes,7,opt,name=state,proto3" json:"state,omitempty"`
+	ZipCode         string                 `protobuf:"bytes,8,opt,name=zip_code,json=zipCode,proto3" json:"zip_code,omitempty"`
+	Country         string                 `protobuf:"bytes,9,opt,name=country,proto3" json:"country,omitempty"`
+	Description     string                 `protobuf:"bytes,10,opt,name=description,proto3" json:"description,omitempty"`
+	Tags            []string               `protobuf:"bytes,11,rep,name=tags,proto3" json:"tags,omitempty"`
+	CreatedAt       string                 `protobuf:"bytes,12,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt       string                 `protobuf:"bytes,13,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	ImageUrl        string                 `protobuf:"bytes,14,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *HomeResponse) Reset() {
@@ -570,30 +575,58 @@ func (x *HomeResponse) GetName() string {
 	return ""
 }
 
-func (x *HomeResponse) GetAddress() string {
+func (x *HomeResponse) GetStreetAddress_1() string {
 	if x != nil {
-		return x.Address
+		return x.StreetAddress_1
 	}
 	return ""
 }
 
-func (x *HomeResponse) GetRooms() []*Room {
+func (x *HomeResponse) GetStreetAddress_2() string {
 	if x != nil {
-		return x.Rooms
+		return x.StreetAddress_2
 	}
-	return nil
+	return ""
 }
 
-func (x *HomeResponse) GetAppliances() []*Appliance {
+func (x *HomeResponse) GetCity() string {
 	if x != nil {
-		return x.Appliances
+		return x.City
 	}
-	return nil
+	return ""
 }
 
-func (x *HomeResponse) GetCodes() []*Code {
+func (x *HomeResponse) GetState() string {
 	if x != nil {
-		return x.Codes
+		return x.State
+	}
+	return ""
+}
+
+func (x *HomeResponse) GetZipCode() string {
+	if x != nil {
+		return x.ZipCode
+	}
+	return ""
+}
+
+func (x *HomeResponse) GetCountry() string {
+	if x != nil {
+		return x.Country
+	}
+	return ""
+}
+
+func (x *HomeResponse) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *HomeResponse) GetTags() []string {
+	if x != nil {
+		return x.Tags
 	}
 	return nil
 }
@@ -608,6 +641,13 @@ func (x *HomeResponse) GetCreatedAt() string {
 func (x *HomeResponse) GetUpdatedAt() string {
 	if x != nil {
 		return x.UpdatedAt
+	}
+	return ""
+}
+
+func (x *HomeResponse) GetImageUrl() string {
+	if x != nil {
+		return x.ImageUrl
 	}
 	return ""
 }
@@ -950,23 +990,25 @@ const file_home_proto_rawDesc = "" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x18\n" +
 	"\asuccess\x18\x03 \x01(\bR\asuccess\"&\n" +
 	"\vHomeRequest\x12\x17\n" +
-	"\ahome_id\x18\x01 \x01(\tR\x06homeId\"\xa3\x02\n" +
+	"\ahome_id\x18\x01 \x01(\tR\x06homeId\"\x9a\x03\n" +
 	"\fHomeResponse\x12\x17\n" +
 	"\ahome_id\x18\x01 \x01(\tR\x06homeId\x12\x19\n" +
 	"\bowner_id\x18\x02 \x01(\tR\aownerId\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\x12\x18\n" +
-	"\aaddress\x18\x04 \x01(\tR\aaddress\x12 \n" +
-	"\x05rooms\x18\x05 \x03(\v2\n" +
-	".nyum.RoomR\x05rooms\x12/\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12(\n" +
+	"\x10street_address_1\x18\x04 \x01(\tR\x0estreetAddress1\x12(\n" +
+	"\x10street_address_2\x18\x05 \x01(\tR\x0estreetAddress2\x12\x12\n" +
+	"\x04city\x18\x06 \x01(\tR\x04city\x12\x14\n" +
+	"\x05state\x18\a \x01(\tR\x05state\x12\x19\n" +
+	"\bzip_code\x18\b \x01(\tR\azipCode\x12\x18\n" +
+	"\acountry\x18\t \x01(\tR\acountry\x12 \n" +
+	"\vdescription\x18\n" +
+	" \x01(\tR\vdescription\x12\x12\n" +
+	"\x04tags\x18\v \x03(\tR\x04tags\x12\x1d\n" +
 	"\n" +
-	"appliances\x18\x06 \x03(\v2\x0f.nyum.ApplianceR\n" +
-	"appliances\x12 \n" +
-	"\x05codes\x18\a \x03(\v2\n" +
-	".nyum.CodeR\x05codes\x12\x1d\n" +
+	"created_at\x18\f \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"created_at\x18\b \x01(\tR\tcreatedAt\x12\x1d\n" +
-	"\n" +
-	"updated_at\x18\t \x01(\tR\tupdatedAt\"\xc8\x04\n" +
+	"updated_at\x18\r \x01(\tR\tupdatedAt\x12\x1b\n" +
+	"\timage_url\x18\x0e \x01(\tR\bimageUrl\"\xc8\x04\n" +
 	"\x11HomeUpdateRequest\x12\x17\n" +
 	"\ahome_id\x18\x01 \x01(\tR\x06homeId\x12\x17\n" +
 	"\x04name\x18\x02 \x01(\tH\x00R\x04name\x88\x01\x01\x12\x1d\n" +
@@ -1035,14 +1077,11 @@ var file_home_proto_goTypes = []any{
 }
 var file_home_proto_depIdxs = []int32{
 	0, // 0: nyum.Appliance.location:type_name -> nyum.Room
-	0, // 1: nyum.HomeResponse.rooms:type_name -> nyum.Room
-	1, // 2: nyum.HomeResponse.appliances:type_name -> nyum.Appliance
-	2, // 3: nyum.HomeResponse.codes:type_name -> nyum.Code
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	1, // [1:1] is the sub-list for method output_type
+	1, // [1:1] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_home_proto_init() }
