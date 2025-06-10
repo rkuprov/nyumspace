@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
 
@@ -51,9 +52,6 @@ func Run(work workFunc, opts ...DaemonOpt) {
 	}
 
 	d.errChan = errChan
-
-	d.Router = chi.NewRouter()
-	d.Server.Handler = d.Router
 
 	go func() {
 		defer recoverDaemonPanic(errChan)
@@ -109,19 +107,23 @@ func newDaemon(ctx context.Context, cfg config.Cfg, opts ...DaemonOpt) (Daemon, 
 	log.Println("Successfully connected to PostgreSQL")
 
 	// Initialize the HTTP server
-	baseCtx, cancelInflightRequests := context.WithTimeout(ctx, 20*time.Second)
+	baseCtx, cancelInflightRequests := context.WithCancel(ctx)
+	router := chi.NewRouter()
+	router.Use(middleware.Recoverer)
+	router.Use(middleware.Logger)
 	httpServer := &http.Server{
 		Addr: fmt.Sprintf("%s:%s", cfg.HTTPServer.Host, cfg.HTTPServer.Port),
 		BaseContext: func(_ net.Listener) context.Context {
 			return baseCtx
 		},
+		Handler: router,
 	}
 	httpServer.RegisterOnShutdown(cancelInflightRequests)
 
 	d := Daemon{
 		DB:     dbpool,
 		Server: httpServer,
-		Router: chi.NewRouter(),
+		Router: router,
 	}
 
 	for _, opt := range opts {

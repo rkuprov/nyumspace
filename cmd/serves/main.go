@@ -2,23 +2,63 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/handlers"
 	"github.com/rkuprov/nyumspace/pkg/daemon"
-	"github.com/rkuprov/nyumspace/pkg/gen/nyumpb/nyumpbconnect"
 )
 
 func main() {
 	daemon.Run(func(ctx context.Context, d daemon.Daemon) error {
-		svc := handlers.NewServerHandler(d)
-		d.Router.Handle(nyumpbconnect.NewServerServiceHandler(svc))
-		d.Router.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-			log.Println("Request Received")
-			w.Write([]byte("Hello, world!"))
-		})
+		setupRoutes(d)
 
 		return d.Server.ListenAndServe()
+	},
+		daemon.WithAddress("localhost:3000"))
+}
+
+func setupRoutes(d daemon.Daemon) {
+	// Create a Chi router if not already created
+	if d.Router == nil {
+		d.Router = chi.NewRouter()
+	}
+
+	// Add middleware
+	d.Router.Use(middleware.Logger)
+	d.Router.Use(middleware.Recoverer)
+
+	// Basic health check endpoint
+	d.Router.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("Health check request received")
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{
+			"status":  "healthy",
+			"message": "Service is running",
+		})
 	})
+
+	// User routes
+	d.Router.Route("/api/users", func(r chi.Router) {
+		r.Post("/register", handlers.RegisterUser(d.DB)) // Register a new user
+		r.Get("/{userID}", handlers.GetUser(d.DB))       // Get user by ID
+		r.Put("/{userID}", handlers.UpdateUser(d.DB))    // Update user
+		r.Delete("/{userID}", handlers.DeleteUser(d.DB)) // Delete user
+		r.Post("/login", handlers.LoginUser(d.DB))       // Login
+		r.Post("/logout", handlers.LogoutUser(d.DB))     // Logout
+	})
+
+	// Home routes
+	d.Router.Route("/api/homes", func(r chi.Router) {
+		r.Post("/", handlers.CreateHome(d.DB))           // Create a new home
+		r.Get("/{homeID}", handlers.GetHome(d.DB))       // Get home by ID
+		r.Put("/{homeID}", handlers.UpdateHome(d.DB))    // Update home
+		r.Delete("/{homeID}", handlers.DeleteHome(d.DB)) // Delete home
+	})
+
+	// Set router to daemon
+	d.Server.Handler = d.Router
 }
