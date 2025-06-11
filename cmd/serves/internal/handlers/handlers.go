@@ -197,7 +197,7 @@ func GetAllUsers(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		OK(w, resp)
+		OK(w, resp...)
 	}
 }
 
@@ -340,6 +340,6 @@ func GetAllHomes(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		OK(w, resp)
+		OK(w, resp...)
 	}
 }

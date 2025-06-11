@@ -8,7 +8,7 @@ import (
 
 // Result is a generic response structure for REST endpoints
 type Result[T any] struct {
-	Data    T        `json:"data,omitempty"`
+	Data    []T      `json:"data,omitempty"`
 	Message string   `json:"message,omitempty"`
 	Errors  []string `json:"errors,omitempty"`
 }
@@ -37,16 +37,16 @@ func BadRequest(w http.ResponseWriter, err error) {
 	})
 }
 
-func Created[T any](w http.ResponseWriter, data T) {
+func Created[T any](w http.ResponseWriter, data ...T) {
 	sendJSON(w, http.StatusCreated, Result[T]{
-		Data:    data,
+		Data:    append([]T(nil), data...),
 		Message: "Created successfully",
 	})
 }
 
-func OK[T any](w http.ResponseWriter, data T) {
+func OK[T any](w http.ResponseWriter, data ...T) {
 	sendJSON(w, http.StatusOK, Result[T]{
-		Data:    data,
+		Data:    append([]T(nil), data...),
 		Message: "OK",
 	})
 }
