@@ -7,40 +7,55 @@ import (
 )
 
 // Result is a generic response structure for REST endpoints
-type Result struct {
-	Data    interface{} `json:"data,omitempty"`
-	Message string      `json:"message,omitempty"`
-	Errors  []string    `json:"errors,omitempty"`
+type Result[T any] struct {
+	Data    T        `json:"data,omitempty"`
+	Message string   `json:"message,omitempty"`
+	Errors  []string `json:"errors,omitempty"`
 }
 
 // Add to rest.go
 func ValidationFailed(w http.ResponseWriter, err error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusUnprocessableEntity) // 422
-	json.NewEncoder(w).Encode(Result{
+	json.NewEncoder(w).Encode(Result[any]{
 		Message: "Validation failed",
 		Errors:  []string{err.Error()},
 	})
 }
 
 func InternalError(w http.ResponseWriter, err error) {
-	http.Error(w, err.Error(), http.StatusInternalServerError)
+	sendJSON(w, http.StatusInternalServerError, Result[any]{
+		Message: err.Error(),
+		Errors:  []string{err.Error()},
+	})
 }
 
 func BadRequest(w http.ResponseWriter, err error) {
-	http.Error(w, err.Error(), http.StatusBadRequest)
+	sendJSON(w, http.StatusBadRequest, Result[any]{
+		Errors:  []string{err.Error()},
+		Message: err.Error(),
+	})
 }
 
 func Created[T any](w http.ResponseWriter, data T) {
-	sendJSON(w, http.StatusCreated, data)
+	sendJSON(w, http.StatusCreated, Result[T]{
+		Data:    data,
+		Message: "Created successfully",
+	})
 }
 
 func OK[T any](w http.ResponseWriter, data T) {
-	sendJSON(w, http.StatusOK, data)
+	sendJSON(w, http.StatusOK, Result[T]{
+		Data:    data,
+		Message: "OK",
+	})
 }
 
 func Unauthorized(w http.ResponseWriter, err error) {
-	http.Error(w, err.Error(), http.StatusUnauthorized)
+	sendJSON(w, http.StatusUnauthorized, Result[any]{
+		Message: "Unauthorized",
+		Errors:  []string{err.Error()},
+	})
 }
 
 func sendJSON[T any](w http.ResponseWriter, status int, data T) {
