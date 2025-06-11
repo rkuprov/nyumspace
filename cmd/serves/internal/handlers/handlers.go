@@ -4,12 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/rkuprov/nyumspace/cmd/serves/internal/sql"
+	"github.com/rkuprov/nyumspace/cmd/serves/internal/homes"
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/users"
 	"github.com/rkuprov/nyumspace/pkg/gen/nyumpb"
 	"github.com/rkuprov/nyumspace/pkg/nyum"
@@ -194,7 +191,7 @@ func LogoutUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 // Home Handlers
 
 // CreateHome creates a handler for creating a new home
-func CreateHome(db *pgxpool.Pool) func(w http.ResponseWriter, r *http.Request) {
+func CreateHome(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		req, err := extractPayload[nyumpb.HomeCreationRequest](r)
 		if err != nil {
@@ -208,38 +205,32 @@ func CreateHome(db *pgxpool.Pool) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		homeID := uuid.New().String()
-
-		_, err = db.Exec(r.Context(), sql.AddHomeSQL,
-			homeID,
-			req.OwnerId,
-			req.Name,
-			req.StreetAddress_1,
-			req.StreetAddress_2,
-			req.City,
-			req.State,
-			req.ZipCode,
-			req.Country,
-			req.Description,
-			req.Tags,
-			req.ImageUrl,
-		)
+		resp, err := h.CreateHome(r.Context(), &nyum.HomeCreationRequest{
+			HomeCreationRequest: nyumpb.HomeCreationRequest{
+				OwnerId:         req.OwnerId,
+				Name:            req.Name,
+				StreetAddress_1: req.StreetAddress_1,
+				StreetAddress_2: req.StreetAddress_2,
+				City:            req.City,
+				State:           req.State,
+				ZipCode:         req.ZipCode,
+				Country:         req.Country,
+				Description:     req.Description,
+				Tags:            req.Tags,
+				ImageUrl:        req.ImageUrl,
+			},
+		})
 		if err != nil {
 			InternalError(w, fmt.Errorf("failed to create home: %w", err))
 			return
 		}
 
-		response := nyumpb.HomeCreationResponse{
-			HomeId:  homeID,
-			Message: fmt.Sprintf("Home '%s' created successfully", req.Name),
-		}
-
-		Created(w, response)
+		Created(w, resp)
 	}
 }
 
 // GetHome creates a handler for retrieving a home by ID
-func GetHome(db *pgxpool.Pool) func(w http.ResponseWriter, r *http.Request) {
+func GetHome(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		homeID := chi.URLParam(r, "homeID")
 		if homeID == "" {
@@ -247,54 +238,22 @@ func GetHome(db *pgxpool.Pool) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		row := db.QueryRow(r.Context(), sql.GetHomeSQL, homeID)
-
-		var (
-			id             string
-			ownerID        string
-			name           string
-			streetAddress1 string
-			streetAddress2 string
-			city           string
-			state          string
-			zipCode        string
-			country        string
-			description    string
-			tags           []string
-			imageURL       string
-			createdAt      time.Time
-			updatedAt      time.Time
-		)
-
-		if err := row.Scan(&id, &ownerID, &name, &streetAddress1, &streetAddress2, &city, &state,
-			&zipCode, &country, &description, &tags, &imageURL, &createdAt, &updatedAt); err != nil {
+		resp, err := h.GetHome(r.Context(), &nyum.HomeRequest{
+			HomeRequest: nyumpb.HomeRequest{
+				HomeId: homeID,
+			},
+		})
+		if err != nil {
 			http.Error(w, fmt.Sprintf("Home not found: %v", err), http.StatusNotFound)
 			return
 		}
 
-		response := nyumpb.HomeResponse{
-			HomeId:          id,
-			OwnerId:         ownerID,
-			Name:            name,
-			Description:     description,
-			StreetAddress_1: streetAddress1,
-			StreetAddress_2: streetAddress2,
-			City:            city,
-			State:           state,
-			ZipCode:         zipCode,
-			Country:         country,
-			ImageUrl:        imageURL,
-			Tags:            tags,
-			CreatedAt:       createdAt.Format(time.RFC3339),
-			UpdatedAt:       updatedAt.Format(time.RFC3339),
-		}
-
-		OK(w, response)
+		OK(w, resp)
 	}
 }
 
 // UpdateHome creates a handler for updating a home
-func UpdateHome(db *pgxpool.Pool) func(w http.ResponseWriter, r *http.Request) {
+func UpdateHome(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		homeID := chi.URLParam(r, "homeID")
 		if homeID == "" {
@@ -302,19 +261,42 @@ func UpdateHome(db *pgxpool.Pool) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		_, err := extractPayload[nyumpb.HomeUpdateRequest](r)
+		req, err := extractPayload[nyumpb.HomeUpdateRequest](r)
 		if err != nil {
 			BadRequest(w, err)
 			return
 		}
 
-		// Not implemented in the original handler
-		http.Error(w, "Update home functionality not implemented yet", http.StatusNotImplemented)
+		// Set the home ID from the URL parameter
+		req.HomeId = homeID
+
+		resp, err := h.UpdateHome(r.Context(), &nyum.HomeUpdateRequest{
+			HomeUpdateRequest: nyumpb.HomeUpdateRequest{
+				HomeId:          homeID,
+				Name:            req.Name,
+				OwnerId:         req.OwnerId,
+				StreetAddress_1: req.StreetAddress_1,
+				StreetAddress_2: req.StreetAddress_2,
+				City:            req.City,
+				State:           req.State,
+				ZipCode:         req.ZipCode,
+				Country:         req.Country,
+				Description:     req.Description,
+				Tags:            req.Tags,
+				ImageUrl:        req.ImageUrl,
+			},
+		})
+		if err != nil {
+			InternalError(w, fmt.Errorf("failed to update home: %w", err))
+			return
+		}
+
+		OK(w, resp)
 	}
 }
 
 // DeleteHome creates a handler for deleting a home
-func DeleteHome(db *pgxpool.Pool) func(w http.ResponseWriter, r *http.Request) {
+func DeleteHome(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		homeID := chi.URLParam(r, "homeID")
 		if homeID == "" {
@@ -322,18 +304,16 @@ func DeleteHome(db *pgxpool.Pool) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		row := db.QueryRow(r.Context(), sql.DeleteHomeSQL, homeID)
-
-		var id string
-		if err := row.Scan(&id); err != nil {
+		resp, err := h.DeleteHome(r.Context(), &nyum.HomeDeleteRequest{
+			HomeDeleteRequest: nyumpb.HomeDeleteRequest{
+				HomeId: homeID,
+			},
+		})
+		if err != nil {
 			InternalError(w, fmt.Errorf("failed to delete home: %w", err))
 			return
 		}
 
-		response := nyumpb.HomeDeleteResponse{
-			Message: fmt.Sprintf("Home with ID %s deleted successfully", homeID),
-		}
-
-		OK(w, response)
+		OK(w, resp)
 	}
 }

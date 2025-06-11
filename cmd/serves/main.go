@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/handlers"
+	"github.com/rkuprov/nyumspace/cmd/serves/internal/homes"
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/users"
 	"github.com/rkuprov/nyumspace/pkg/daemon"
 )
@@ -55,11 +56,13 @@ func setupRoutes(d daemon.Daemon) {
 	})
 
 	// Home routes
+	h := homes.NewHomes(&d)
+
 	d.Router.Route("/api/homes", func(r chi.Router) {
-		r.Post("/", handlers.CreateHome(d.DB))           // Create a new home
-		r.Get("/{homeID}", handlers.GetHome(d.DB))       // Get home by ID
-		r.Put("/{homeID}", handlers.UpdateHome(d.DB))    // Update home
-		r.Delete("/{homeID}", handlers.DeleteHome(d.DB)) // Delete home
+		r.Post("/", handlers.CreateHome(h))           // Create a new home
+		r.Get("/{homeID}", handlers.GetHome(h))       // Get home by ID
+		r.Put("/{homeID}", handlers.UpdateHome(h))    // Update home
+		r.Delete("/{homeID}", handlers.DeleteHome(h)) // Delete home
 	})
 
 	// Set router to daemon
