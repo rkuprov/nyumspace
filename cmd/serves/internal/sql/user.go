@@ -9,6 +9,9 @@ var (
 	GetUser = `
 	SELECT id, name, email FROM users WHERE id = $1;
 `
+	GetAllUsers = `
+	SELECT id, name, email FROM users;
+`
 	UpdateUser = `
 	UPDATE users
 	SET name = $2, email = $3

@@ -188,6 +188,19 @@ func LogoutUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetAllUsers creates a handler for retrieving all users
+func GetAllUsers(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		resp, err := u.GetAllUsers(r.Context())
+		if err != nil {
+			InternalError(w, fmt.Errorf("failed to get users: %w", err))
+			return
+		}
+
+		OK(w, resp)
+	}
+}
+
 // Home Handlers
 
 // CreateHome creates a handler for creating a new home

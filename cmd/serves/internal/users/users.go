@@ -148,3 +148,27 @@ func (u *Users) LogoutUser(ctx context.Context, req *nyum.UserLogoutRequest) (*n
 		},
 	}, nil
 }
+
+func (u *Users) GetAllUsers(ctx context.Context) ([]nyum.UserResponse, error) {
+	rows, err := u.DB.Query(ctx, sql.GetAllUsers)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get users: %w", err)
+	}
+	defer rows.Close()
+
+	users := []nyum.UserResponse{}
+	for rows.Next() {
+		var user nyum.UserResponse
+		if err := rows.Scan(&user.UserId, &user.Username, &user.Email); err != nil {
+			return nil, fmt.Errorf("failed to scan user row: %w", err)
+		}
+
+		users = append(users, user)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating over users: %w", err)
+	}
+
+	return users, nil
+}

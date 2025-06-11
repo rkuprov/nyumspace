@@ -46,8 +46,6 @@ type UserLogoutResponse struct {
 	nyumpb.UserLogoutResponse
 }
 
-// Home types
-
 type Room struct {
 	nyumpb.Room
 }

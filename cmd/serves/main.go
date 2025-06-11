@@ -53,6 +53,7 @@ func setupRoutes(d daemon.Daemon) {
 		r.Delete("/{userID}", handlers.DeleteUser(u)) // Delete user
 		r.Post("/login", handlers.LoginUser(u))       // Login
 		r.Post("/logout", handlers.LogoutUser(u))     // Logout
+		r.Get("/", handlers.GetAllUsers(u))           // Get all users
 	})
 
 	// Home routes
