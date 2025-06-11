@@ -86,7 +86,7 @@ type UserRegistrationResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
 	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Success       bool                   `protobuf:"varint,3,opt,name=success,proto3" json:"success,omitempty"`
+	Error         string                 `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -135,11 +135,11 @@ func (x *UserRegistrationResponse) GetUserId() string {
 	return ""
 }
 
-func (x *UserRegistrationResponse) GetSuccess() bool {
+func (x *UserRegistrationResponse) GetError() string {
 	if x != nil {
-		return x.Success
+		return x.Error
 	}
-	return false
+	return ""
 }
 
 // GetUser messages
@@ -335,7 +335,7 @@ func (x *UserUpdateRequest) GetPassword() string {
 type UserUpdateResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
-	Success       bool                   `protobuf:"varint,2,opt,name=success,proto3" json:"success,omitempty"`
+	Error         string                 `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -377,11 +377,11 @@ func (x *UserUpdateResponse) GetMessage() string {
 	return ""
 }
 
-func (x *UserUpdateResponse) GetSuccess() bool {
+func (x *UserUpdateResponse) GetError() string {
 	if x != nil {
-		return x.Success
+		return x.Error
 	}
-	return false
+	return ""
 }
 
 // DeleteUser messages
@@ -431,8 +431,9 @@ func (x *UserDeleteRequest) GetUserId() string {
 
 type UserDeleteResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
-	Success       bool                   `protobuf:"varint,2,opt,name=success,proto3" json:"success,omitempty"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	Error         string                 `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -467,6 +468,13 @@ func (*UserDeleteResponse) Descriptor() ([]byte, []int) {
 	return file_user_proto_rawDescGZIP(), []int{7}
 }
 
+func (x *UserDeleteResponse) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
 func (x *UserDeleteResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
@@ -474,11 +482,11 @@ func (x *UserDeleteResponse) GetMessage() string {
 	return ""
 }
 
-func (x *UserDeleteResponse) GetSuccess() bool {
+func (x *UserDeleteResponse) GetError() string {
 	if x != nil {
-		return x.Success
+		return x.Error
 	}
-	return false
+	return ""
 }
 
 // Login messages
@@ -537,9 +545,9 @@ func (x *UserLoginRequest) GetPassword() string {
 type UserLoginResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SessionToken  string                 `protobuf:"bytes,1,opt,name=session_token,json=sessionToken,proto3" json:"session_token,omitempty"`
-	Success       bool                   `protobuf:"varint,2,opt,name=success,proto3" json:"success,omitempty"`
 	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
 	UserId        string                 `protobuf:"bytes,4,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Error         string                 `protobuf:"bytes,5,opt,name=error,proto3" json:"error,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -581,13 +589,6 @@ func (x *UserLoginResponse) GetSessionToken() string {
 	return ""
 }
 
-func (x *UserLoginResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
 func (x *UserLoginResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
@@ -598,6 +599,13 @@ func (x *UserLoginResponse) GetMessage() string {
 func (x *UserLoginResponse) GetUserId() string {
 	if x != nil {
 		return x.UserId
+	}
+	return ""
+}
+
+func (x *UserLoginResponse) GetError() string {
+	if x != nil {
+		return x.Error
 	}
 	return ""
 }
@@ -649,8 +657,8 @@ func (x *UserLogoutRequest) GetSessionToken() string {
 
 type UserLogoutResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       bool                   `protobuf:"varint,2,opt,name=success,proto3" json:"success,omitempty"`
-	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
+	Error         string                 `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -685,16 +693,16 @@ func (*UserLogoutResponse) Descriptor() ([]byte, []int) {
 	return file_user_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *UserLogoutResponse) GetSuccess() bool {
-	if x != nil {
-		return x.Success
-	}
-	return false
-}
-
 func (x *UserLogoutResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
+	}
+	return ""
+}
+
+func (x *UserLogoutResponse) GetError() string {
+	if x != nil {
+		return x.Error
 	}
 	return ""
 }
@@ -708,11 +716,11 @@ const file_user_proto_rawDesc = "" +
 	"\x17UserRegistrationRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x14\n" +
-	"\x05email\x18\x03 \x01(\tR\x05email\"g\n" +
+	"\x05email\x18\x03 \x01(\tR\x05email\"c\n" +
 	"\x18UserRegistrationResponse\x12\x18\n" +
 	"\amessage\x18\x01 \x01(\tR\amessage\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x18\n" +
-	"\asuccess\x18\x03 \x01(\bR\asuccess\"&\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x14\n" +
+	"\x05error\x18\x03 \x01(\tR\x05error\"&\n" +
 	"\vUserRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\"\x97\x01\n" +
 	"\fUserResponse\x12\x17\n" +
@@ -730,28 +738,29 @@ const file_user_proto_rawDesc = "" +
 	"\bpassword\x18\x04 \x01(\tH\x02R\bpassword\x88\x01\x01B\v\n" +
 	"\t_usernameB\b\n" +
 	"\x06_emailB\v\n" +
-	"\t_password\"H\n" +
+	"\t_password\"D\n" +
 	"\x12UserUpdateResponse\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage\x12\x18\n" +
-	"\asuccess\x18\x02 \x01(\bR\asuccess\",\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage\x12\x14\n" +
+	"\x05error\x18\x02 \x01(\tR\x05error\",\n" +
 	"\x11UserDeleteRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\"H\n" +
-	"\x12UserDeleteResponse\x12\x18\n" +
-	"\amessage\x18\x01 \x01(\tR\amessage\x12\x18\n" +
-	"\asuccess\x18\x02 \x01(\bR\asuccess\"D\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\"]\n" +
+	"\x12UserDeleteResponse\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12\x14\n" +
+	"\x05error\x18\x03 \x01(\tR\x05error\"D\n" +
 	"\x10UserLoginRequest\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
-	"\bpassword\x18\x02 \x01(\tR\bpassword\"\x85\x01\n" +
+	"\bpassword\x18\x02 \x01(\tR\bpassword\"\x81\x01\n" +
 	"\x11UserLoginResponse\x12#\n" +
 	"\rsession_token\x18\x01 \x01(\tR\fsessionToken\x12\x18\n" +
-	"\asuccess\x18\x02 \x01(\bR\asuccess\x12\x18\n" +
 	"\amessage\x18\x03 \x01(\tR\amessage\x12\x17\n" +
-	"\auser_id\x18\x04 \x01(\tR\x06userId\"8\n" +
+	"\auser_id\x18\x04 \x01(\tR\x06userId\x12\x14\n" +
+	"\x05error\x18\x05 \x01(\tR\x05error\"8\n" +
 	"\x11UserLogoutRequest\x12#\n" +
-	"\rsession_token\x18\x01 \x01(\tR\fsessionToken\"H\n" +
+	"\rsession_token\x18\x01 \x01(\tR\fsessionToken\"D\n" +
 	"\x12UserLogoutResponse\x12\x18\n" +
-	"\asuccess\x18\x02 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessageBr\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage\x12\x14\n" +
+	"\x05error\x18\x02 \x01(\tR\x05errorBr\n" +
 	"\bcom.nyumB\tUserProtoP\x01Z+github.com/rkuprov/nyumspace/pkg/gen/nyumpb\xa2\x02\x03NXX\xaa\x02\x04Nyum\xca\x02\x04Nyum\xe2\x02\x10Nyum\\GPBMetadata\xea\x02\x04Nyumb\x06proto3"
 
 var (

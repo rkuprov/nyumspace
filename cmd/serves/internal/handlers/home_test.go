@@ -71,8 +71,8 @@ func TestServerHandler_AddHome(t *testing.T) {
 
 	resp, err := svs.AddHome(context.Background(), req)
 	require.NoError(t, err, "AddHome request failed")
-	require.NotNil(t, resp, "Response from AddHome is nil")
-	require.NotNil(t, resp.Msg, "Response message from AddHome is nil")
+	require.NotNil(t, resp, "Result from AddHome is nil")
+	require.NotNil(t, resp.Msg, "Result message from AddHome is nil")
 	require.True(t, resp.Msg.GetSuccess(), "AddHome was not successful")
 
 	assert.NotEmpty(t, resp.Msg.GetHomeId(), "Home ID in response is empty")
@@ -141,8 +141,8 @@ func TestServerHandler_GetHome(t *testing.T) {
 
 	resp2, err := svs.GetHome(context.Background(), req)
 	require.NoError(t, err, "GetHome request failed")
-	require.NotNil(t, resp2, "Response from GetHome is nil")
-	require.NotNil(t, resp2.Msg, "Response message from GetHome is nil")
+	require.NotNil(t, resp2, "Result from GetHome is nil")
+	require.NotNil(t, resp2.Msg, "Result message from GetHome is nil")
 
 	assert.Equal(t, homeID, resp2.Msg.GetHomeId())
 	assert.Equal(t, ownerID, resp2.Msg.GetOwnerId())
@@ -175,8 +175,8 @@ func TestServerHandler_DeleteHome(t *testing.T) {
 
 	resp, err := svs.DeleteHome(context.Background(), req)
 	require.NoError(t, err, "DeleteHome request failed")
-	require.NotNil(t, resp, "Response from DeleteHome is nil")
-	require.NotNil(t, resp.Msg, "Response message from DeleteHome is nil")
+	require.NotNil(t, resp, "Result from DeleteHome is nil")
+	require.NotNil(t, resp.Msg, "Result message from DeleteHome is nil")
 	assert.True(t, resp.Msg.GetSuccess(), "DeleteHome was not successful")
 	assert.Equal(t, fmt.Sprintf("Home with ID %s deleted successfully", homeID), resp.Msg.GetMessage())
 

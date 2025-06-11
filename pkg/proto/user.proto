@@ -11,7 +11,7 @@ message UserRegistrationRequest {
 message UserRegistrationResponse {
   string message = 1;
   string user_id = 2;
-  bool success = 3;
+  string error = 3;
 }
 
 // GetUser messages
@@ -37,7 +37,7 @@ message UserUpdateRequest {
 
 message UserUpdateResponse {
   string message = 1;
-  bool success = 2;
+  string error = 2;
 }
 
 // DeleteUser messages
@@ -46,8 +46,9 @@ message UserDeleteRequest {
 }
 
 message UserDeleteResponse {
-  string message = 1;
-  bool success = 2;
+  string user_id = 1;
+  string message = 2;
+  string error = 3;
 }
 
 // Login messages
@@ -58,9 +59,9 @@ message UserLoginRequest {
 
 message UserLoginResponse {
   string session_token = 1;
-  bool success = 2;
   string message = 3;
   string user_id = 4;
+  string error = 5;
 }
 
 // Logout messages
@@ -69,6 +70,6 @@ message UserLogoutRequest {
 }
 
 message UserLogoutResponse {
-  bool success = 2;
-  string message = 3;
+  string message = 1;
+  string error = 2;
 }
