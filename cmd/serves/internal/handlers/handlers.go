@@ -155,6 +155,8 @@ func LoginUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		w.Header().Add("Authorization", resp.SessionToken)
+
 		OK(w, resp)
 	}
 }
