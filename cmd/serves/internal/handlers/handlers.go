@@ -330,3 +330,16 @@ func DeleteHome(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
 		OK(w, resp)
 	}
 }
+
+// GetAllHomes creates a handler for retrieving all homes
+func GetAllHomes(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		resp, err := h.GetAllHomes(r.Context())
+		if err != nil {
+			InternalError(w, fmt.Errorf("failed to get homes: %w", err))
+			return
+		}
+
+		OK(w, resp)
+	}
+}

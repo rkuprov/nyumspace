@@ -64,6 +64,7 @@ func setupRoutes(d daemon.Daemon) {
 		r.Get("/{homeID}", handlers.GetHome(h))       // Get home by ID
 		r.Put("/{homeID}", handlers.UpdateHome(h))    // Update home
 		r.Delete("/{homeID}", handlers.DeleteHome(h)) // Delete home
+		r.Get("/", handlers.GetAllHomes(h))           // Get all homes
 	})
 
 	// Set router to daemon
