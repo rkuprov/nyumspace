@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/handlers"
+	"github.com/rkuprov/nyumspace/cmd/serves/internal/users"
 	"github.com/rkuprov/nyumspace/pkg/daemon"
 )
 
@@ -42,13 +43,15 @@ func setupRoutes(d daemon.Daemon) {
 	})
 
 	// User routes
+	u := users.NewUsers(&d)
+
 	d.Router.Route("/api/users", func(r chi.Router) {
-		r.Post("/register", handlers.RegisterUser(d.DB)) // Register a new user
-		r.Get("/{userID}", handlers.GetUser(d.DB))       // Get user by ID
-		r.Put("/{userID}", handlers.UpdateUser(d.DB))    // Update user
-		r.Delete("/{userID}", handlers.DeleteUser(d.DB)) // Delete user
-		r.Post("/login", handlers.LoginUser(d.DB))       // Login
-		r.Post("/logout", handlers.LogoutUser(d.DB))     // Logout
+		r.Post("/register", handlers.RegisterUser(u)) // Register a new user
+		r.Get("/{userID}", handlers.GetUser(u))       // Get user by ID
+		r.Put("/{userID}", handlers.UpdateUser(u))    // Update user
+		r.Delete("/{userID}", handlers.DeleteUser(u)) // Delete user
+		r.Post("/login", handlers.LoginUser(u))       // Login
+		r.Post("/logout", handlers.LogoutUser(u))     // Logout
 	})
 
 	// Home routes
