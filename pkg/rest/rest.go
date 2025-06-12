@@ -1,4 +1,4 @@
-package handlers
+package rest
 
 import (
 	"encoding/json"
@@ -66,7 +66,7 @@ func sendJSON[T any](w http.ResponseWriter, status int, data T) {
 	}
 }
 
-func extractPayload[T any](r *http.Request) (T, error) {
+func ExtractPayload[T any](r *http.Request) (T, error) {
 	var payload T
 	defer r.Body.Close()
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
