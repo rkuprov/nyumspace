@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/sql"
 	"github.com/rkuprov/nyumspace/pkg/daemon"
@@ -22,6 +23,24 @@ func NewHomes(d *daemon.Daemon) *Homes {
 	return &Homes{
 		DB: d.DB,
 	}
+}
+
+func (h *Homes) CheckToken(ctx context.Context, token string) (bool, error) {
+	var discard string
+	var expiresAt time.Time
+	err := h.DB.QueryRow(ctx, sql.GetSession, token).Scan(&discard, &expiresAt)
+	if err != nil {
+		if !errors.Is(err, pgx.ErrNoRows) {
+			return false, err // Token does not exist
+		}
+		return false, nil // Token does not exist, but no error
+	}
+
+	if expiresAt.Before(time.Now()) {
+		return false, nil // Token exists but is expired
+	}
+
+	return true, nil
 }
 
 // CreateHome creates a new home
@@ -141,49 +160,4 @@ func (h *Homes) DeleteHome(ctx context.Context, req *nyum.HomeDeleteRequest) (*n
 			Message: fmt.Sprintf("Home with ID %s deleted successfully", req.HomeId),
 		},
 	}, nil
-}
-
-// GetAllHomes retrieves all homes
-func (h *Homes) GetAllHomes(ctx context.Context) ([]nyum.HomeResponse, error) {
-	rows, err := h.DB.Query(ctx, sql.GetAllHomesSQL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get homes: %w", err)
-	}
-	defer rows.Close()
-
-	homes := []nyum.HomeResponse{}
-	for rows.Next() {
-		var home nyum.HomeResponse
-		var createdAt, updatedAt time.Time
-
-		if err := rows.Scan(
-			&home.HomeId,
-			&home.OwnerId,
-			&home.Name,
-			&home.StreetAddress_1,
-			&home.StreetAddress_2,
-			&home.City,
-			&home.State,
-			&home.ZipCode,
-			&home.Country,
-			&home.Description,
-			&home.Tags,
-			&home.ImageUrl,
-			&createdAt,
-			&updatedAt,
-		); err != nil {
-			return nil, fmt.Errorf("failed to scan home row: %w", err)
-		}
-
-		home.CreatedAt = createdAt.Format(time.RFC3339)
-		home.UpdatedAt = updatedAt.Format(time.RFC3339)
-
-		homes = append(homes, home)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating over homes: %w", err)
-	}
-
-	return homes, nil
 }

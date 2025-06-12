@@ -24,15 +24,7 @@ var (
 )
 
 var (
-	CreateSession = `
-	INSERT INTO user_sessions (session_token, user_id, expires_at)
-	VALUES ($1, $2, $3)
-	RETURNING session_token;
-`
 	GetUserByEmail = `
 	SELECT id, password_hash FROM users WHERE email = $1;
-`
-	DeleteSession = `
-	DELETE FROM user_sessions WHERE session_token = $1;
 `
 )

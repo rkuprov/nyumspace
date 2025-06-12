@@ -7,10 +7,11 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/rkuprov/nyumspace/cmd/serves/internal/admin"
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/handlers"
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/homes"
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/users"
+	"github.com/rkuprov/nyumspace/pkg/auth"
 	"github.com/rkuprov/nyumspace/pkg/daemon"
 )
 
@@ -29,10 +30,6 @@ func setupRoutes(d daemon.Daemon) {
 		d.Router = chi.NewRouter()
 	}
 
-	// Add middleware
-	d.Router.Use(middleware.Logger)
-	d.Router.Use(middleware.Recoverer)
-
 	// Basic health check endpoint
 	d.Router.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Health check request received")
@@ -43,28 +40,36 @@ func setupRoutes(d daemon.Daemon) {
 		})
 	})
 
+	// Admin routes
+	a := admin.NewAdmin(d)
+	d.Router.Route("/admin", func(r chi.Router) {
+		r.Use(auth.SessionMiddleware(&a))
+		r.Get("/users", handlers.GetAllUsers(&a))           // Get all users
+		r.Get("/homes", handlers.GetAllHomes(&a))           // Get all homes
+		r.Delete("/{userID}", handlers.AdminDeleteUser(&a)) // Delete user
+		r.Get("/{userID}", handlers.AdminDeleteHome(&a))    // Get user by ID
+	})
+
 	// User routes
 	u := users.NewUsers(&d)
-
+	d.Router.Post("/register", handlers.RegisterUser(u)) // Register a new user
+	d.Router.Post("/login", handlers.LoginUser(u))       // Login
 	d.Router.Route("/api/users", func(r chi.Router) {
-		r.Post("/register", handlers.RegisterUser(u)) // Register a new user
+		r.Use(auth.SessionMiddleware(&a))
 		r.Get("/{userID}", handlers.GetUser(u))       // Get user by ID
 		r.Put("/{userID}", handlers.UpdateUser(u))    // Update user
 		r.Delete("/{userID}", handlers.DeleteUser(u)) // Delete user
-		r.Post("/login", handlers.LoginUser(u))       // Login
 		r.Post("/logout", handlers.LogoutUser(u))     // Logout
-		r.Get("/", handlers.GetAllUsers(u))           // Get all users
 	})
 
 	// Home routes
 	h := homes.NewHomes(&d)
-
 	d.Router.Route("/api/homes", func(r chi.Router) {
+		r.Use(auth.SessionMiddleware(&a))
 		r.Post("/", handlers.CreateHome(h))           // Create a new home
 		r.Get("/{homeID}", handlers.GetHome(h))       // Get home by ID
 		r.Put("/{homeID}", handlers.UpdateHome(h))    // Update home
 		r.Delete("/{homeID}", handlers.DeleteHome(h)) // Delete home
-		r.Get("/", handlers.GetAllHomes(h))           // Get all homes
 	})
 
 	// Set router to daemon

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/sql"
 	"github.com/rkuprov/nyumspace/pkg/daemon"
@@ -23,6 +24,24 @@ func NewUsers(d *daemon.Daemon) *Users {
 	return &Users{
 		DB: d.DB,
 	}
+}
+
+func (u *Users) CheckToken(ctx context.Context, token string) (bool, error) {
+	var discard string
+	var expiresAt time.Time
+	err := u.DB.QueryRow(ctx, sql.GetSession, token).Scan(&discard, &expiresAt)
+	if err != nil {
+		if !errors.Is(err, pgx.ErrNoRows) {
+			return false, err // Token does not exist
+		}
+		return false, nil // Token does not exist, but no error
+	}
+
+	if expiresAt.Before(time.Now()) {
+		return false, nil // Token exists but is expired
+	}
+
+	return true, nil
 }
 
 func (u *Users) RegisterUser(ctx context.Context, req *nyum.UserRegistrationRequest) (*nyum.UserRegistrationResponse, error) {
@@ -147,28 +166,4 @@ func (u *Users) LogoutUser(ctx context.Context, req *nyum.UserLogoutRequest) (*n
 			Message: "Logout successful",
 		},
 	}, nil
-}
-
-func (u *Users) GetAllUsers(ctx context.Context) ([]nyum.UserResponse, error) {
-	rows, err := u.DB.Query(ctx, sql.GetAllUsers)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get users: %w", err)
-	}
-	defer rows.Close()
-
-	users := []nyum.UserResponse{}
-	for rows.Next() {
-		var user nyum.UserResponse
-		if err := rows.Scan(&user.UserId, &user.Username, &user.Email); err != nil {
-			return nil, fmt.Errorf("failed to scan user row: %w", err)
-		}
-
-		users = append(users, user)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating over users: %w", err)
-	}
-
-	return users, nil
 }
