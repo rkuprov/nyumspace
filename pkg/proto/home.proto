@@ -31,16 +31,15 @@ message Code {
 // HomeCreation messages
 message HomeCreationRequest {
   string name = 1;
-  string address = 2;
-  string street_address_1 = 3;
-  string street_address_2 = 4;
-  string city = 5;
-  string state = 6;
-  string zip_code = 7;
-  string country = 8;
-  string description = 9;
-  repeated string tags = 10;
-  string image_url = 11;
+  string street_address_1 = 2;
+  string street_address_2 = 3;
+  string city = 4;
+  string state = 5;
+  string zip_code = 6;
+  string country = 7;
+  string description = 8;
+  repeated string tags = 9;
+  string image_url = 10;
 }
 
 message HomeCreationResponse {

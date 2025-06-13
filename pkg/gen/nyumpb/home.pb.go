@@ -270,16 +270,15 @@ func (x *Code) GetExpiresAt() string {
 type HomeCreationRequest struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Name            string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Address         string                 `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
-	StreetAddress_1 string                 `protobuf:"bytes,3,opt,name=street_address_1,json=streetAddress1,proto3" json:"street_address_1,omitempty"`
-	StreetAddress_2 string                 `protobuf:"bytes,4,opt,name=street_address_2,json=streetAddress2,proto3" json:"street_address_2,omitempty"`
-	City            string                 `protobuf:"bytes,5,opt,name=city,proto3" json:"city,omitempty"`
-	State           string                 `protobuf:"bytes,6,opt,name=state,proto3" json:"state,omitempty"`
-	ZipCode         string                 `protobuf:"bytes,7,opt,name=zip_code,json=zipCode,proto3" json:"zip_code,omitempty"`
-	Country         string                 `protobuf:"bytes,8,opt,name=country,proto3" json:"country,omitempty"`
-	Description     string                 `protobuf:"bytes,9,opt,name=description,proto3" json:"description,omitempty"`
-	Tags            []string               `protobuf:"bytes,10,rep,name=tags,proto3" json:"tags,omitempty"`
-	ImageUrl        string                 `protobuf:"bytes,11,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
+	StreetAddress_1 string                 `protobuf:"bytes,2,opt,name=street_address_1,json=streetAddress1,proto3" json:"street_address_1,omitempty"`
+	StreetAddress_2 string                 `protobuf:"bytes,3,opt,name=street_address_2,json=streetAddress2,proto3" json:"street_address_2,omitempty"`
+	City            string                 `protobuf:"bytes,4,opt,name=city,proto3" json:"city,omitempty"`
+	State           string                 `protobuf:"bytes,5,opt,name=state,proto3" json:"state,omitempty"`
+	ZipCode         string                 `protobuf:"bytes,6,opt,name=zip_code,json=zipCode,proto3" json:"zip_code,omitempty"`
+	Country         string                 `protobuf:"bytes,7,opt,name=country,proto3" json:"country,omitempty"`
+	Description     string                 `protobuf:"bytes,8,opt,name=description,proto3" json:"description,omitempty"`
+	Tags            []string               `protobuf:"bytes,9,rep,name=tags,proto3" json:"tags,omitempty"`
+	ImageUrl        string                 `protobuf:"bytes,10,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -317,13 +316,6 @@ func (*HomeCreationRequest) Descriptor() ([]byte, []int) {
 func (x *HomeCreationRequest) GetName() string {
 	if x != nil {
 		return x.Name
-	}
-	return ""
-}
-
-func (x *HomeCreationRequest) GetAddress() string {
-	if x != nil {
-		return x.Address
 	}
 	return ""
 }
@@ -978,20 +970,19 @@ const file_home_proto_rawDesc = "" +
 	"\x05value\x18\x03 \x01(\tR\x05value\x12\x12\n" +
 	"\x04type\x18\x04 \x01(\tR\x04type\x12\x1d\n" +
 	"\n" +
-	"expires_at\x18\x05 \x01(\tR\texpiresAt\"\xc9\x02\n" +
+	"expires_at\x18\x05 \x01(\tR\texpiresAt\"\xaf\x02\n" +
 	"\x13HomeCreationRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
-	"\aaddress\x18\x02 \x01(\tR\aaddress\x12(\n" +
-	"\x10street_address_1\x18\x03 \x01(\tR\x0estreetAddress1\x12(\n" +
-	"\x10street_address_2\x18\x04 \x01(\tR\x0estreetAddress2\x12\x12\n" +
-	"\x04city\x18\x05 \x01(\tR\x04city\x12\x14\n" +
-	"\x05state\x18\x06 \x01(\tR\x05state\x12\x19\n" +
-	"\bzip_code\x18\a \x01(\tR\azipCode\x12\x18\n" +
-	"\acountry\x18\b \x01(\tR\acountry\x12 \n" +
-	"\vdescription\x18\t \x01(\tR\vdescription\x12\x12\n" +
-	"\x04tags\x18\n" +
-	" \x03(\tR\x04tags\x12\x1b\n" +
-	"\timage_url\x18\v \x01(\tR\bimageUrl\"_\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12(\n" +
+	"\x10street_address_1\x18\x02 \x01(\tR\x0estreetAddress1\x12(\n" +
+	"\x10street_address_2\x18\x03 \x01(\tR\x0estreetAddress2\x12\x12\n" +
+	"\x04city\x18\x04 \x01(\tR\x04city\x12\x14\n" +
+	"\x05state\x18\x05 \x01(\tR\x05state\x12\x19\n" +
+	"\bzip_code\x18\x06 \x01(\tR\azipCode\x12\x18\n" +
+	"\acountry\x18\a \x01(\tR\acountry\x12 \n" +
+	"\vdescription\x18\b \x01(\tR\vdescription\x12\x12\n" +
+	"\x04tags\x18\t \x03(\tR\x04tags\x12\x1b\n" +
+	"\timage_url\x18\n" +
+	" \x01(\tR\bimageUrl\"_\n" +
 	"\x14HomeCreationResponse\x12\x17\n" +
 	"\ahome_id\x18\x01 \x01(\tR\x06homeId\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x14\n" +
