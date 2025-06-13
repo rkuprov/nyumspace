@@ -269,18 +269,17 @@ func (x *Code) GetExpiresAt() string {
 // HomeCreation messages
 type HomeCreationRequest struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
-	OwnerId         string                 `protobuf:"bytes,1,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
-	Name            string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Address         string                 `protobuf:"bytes,3,opt,name=address,proto3" json:"address,omitempty"`
-	StreetAddress_1 string                 `protobuf:"bytes,4,opt,name=street_address_1,json=streetAddress1,proto3" json:"street_address_1,omitempty"`
-	StreetAddress_2 string                 `protobuf:"bytes,5,opt,name=street_address_2,json=streetAddress2,proto3" json:"street_address_2,omitempty"`
-	City            string                 `protobuf:"bytes,6,opt,name=city,proto3" json:"city,omitempty"`
-	State           string                 `protobuf:"bytes,7,opt,name=state,proto3" json:"state,omitempty"`
-	ZipCode         string                 `protobuf:"bytes,8,opt,name=zip_code,json=zipCode,proto3" json:"zip_code,omitempty"`
-	Country         string                 `protobuf:"bytes,9,opt,name=country,proto3" json:"country,omitempty"`
-	Description     string                 `protobuf:"bytes,10,opt,name=description,proto3" json:"description,omitempty"`
-	Tags            []string               `protobuf:"bytes,11,rep,name=tags,proto3" json:"tags,omitempty"`
-	ImageUrl        string                 `protobuf:"bytes,12,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
+	Name            string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Address         string                 `protobuf:"bytes,2,opt,name=address,proto3" json:"address,omitempty"`
+	StreetAddress_1 string                 `protobuf:"bytes,3,opt,name=street_address_1,json=streetAddress1,proto3" json:"street_address_1,omitempty"`
+	StreetAddress_2 string                 `protobuf:"bytes,4,opt,name=street_address_2,json=streetAddress2,proto3" json:"street_address_2,omitempty"`
+	City            string                 `protobuf:"bytes,5,opt,name=city,proto3" json:"city,omitempty"`
+	State           string                 `protobuf:"bytes,6,opt,name=state,proto3" json:"state,omitempty"`
+	ZipCode         string                 `protobuf:"bytes,7,opt,name=zip_code,json=zipCode,proto3" json:"zip_code,omitempty"`
+	Country         string                 `protobuf:"bytes,8,opt,name=country,proto3" json:"country,omitempty"`
+	Description     string                 `protobuf:"bytes,9,opt,name=description,proto3" json:"description,omitempty"`
+	Tags            []string               `protobuf:"bytes,10,rep,name=tags,proto3" json:"tags,omitempty"`
+	ImageUrl        string                 `protobuf:"bytes,11,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -313,13 +312,6 @@ func (x *HomeCreationRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use HomeCreationRequest.ProtoReflect.Descriptor instead.
 func (*HomeCreationRequest) Descriptor() ([]byte, []int) {
 	return file_home_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *HomeCreationRequest) GetOwnerId() string {
-	if x != nil {
-		return x.OwnerId
-	}
-	return ""
 }
 
 func (x *HomeCreationRequest) GetName() string {
@@ -463,6 +455,7 @@ func (x *HomeCreationResponse) GetError() string {
 type HomeRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	HomeId        string                 `protobuf:"bytes,1,opt,name=home_id,json=homeId,proto3" json:"home_id,omitempty"`
+	OwnerId       string                 `protobuf:"bytes,2,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -500,6 +493,13 @@ func (*HomeRequest) Descriptor() ([]byte, []int) {
 func (x *HomeRequest) GetHomeId() string {
 	if x != nil {
 		return x.HomeId
+	}
+	return ""
+}
+
+func (x *HomeRequest) GetOwnerId() string {
+	if x != nil {
+		return x.OwnerId
 	}
 	return ""
 }
@@ -656,9 +656,9 @@ func (x *HomeResponse) GetUpdatedAt() string {
 type HomeUpdateRequest struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	HomeId          string                 `protobuf:"bytes,1,opt,name=home_id,json=homeId,proto3" json:"home_id,omitempty"`
-	Name            *string                `protobuf:"bytes,2,opt,name=name,proto3,oneof" json:"name,omitempty"`
-	Address         *string                `protobuf:"bytes,3,opt,name=address,proto3,oneof" json:"address,omitempty"`
-	OwnerId         *string                `protobuf:"bytes,4,opt,name=owner_id,json=ownerId,proto3,oneof" json:"owner_id,omitempty"`
+	OwnerId         *string                `protobuf:"bytes,2,opt,name=owner_id,json=ownerId,proto3,oneof" json:"owner_id,omitempty"`
+	Name            *string                `protobuf:"bytes,3,opt,name=name,proto3,oneof" json:"name,omitempty"`
+	Address         *string                `protobuf:"bytes,4,opt,name=address,proto3,oneof" json:"address,omitempty"`
 	StreetAddress_1 *string                `protobuf:"bytes,5,opt,name=street_address_1,json=streetAddress1,proto3,oneof" json:"street_address_1,omitempty"`
 	StreetAddress_2 *string                `protobuf:"bytes,6,opt,name=street_address_2,json=streetAddress2,proto3,oneof" json:"street_address_2,omitempty"`
 	City            *string                `protobuf:"bytes,7,opt,name=city,proto3,oneof" json:"city,omitempty"`
@@ -709,6 +709,13 @@ func (x *HomeUpdateRequest) GetHomeId() string {
 	return ""
 }
 
+func (x *HomeUpdateRequest) GetOwnerId() string {
+	if x != nil && x.OwnerId != nil {
+		return *x.OwnerId
+	}
+	return ""
+}
+
 func (x *HomeUpdateRequest) GetName() string {
 	if x != nil && x.Name != nil {
 		return *x.Name
@@ -719,13 +726,6 @@ func (x *HomeUpdateRequest) GetName() string {
 func (x *HomeUpdateRequest) GetAddress() string {
 	if x != nil && x.Address != nil {
 		return *x.Address
-	}
-	return ""
-}
-
-func (x *HomeUpdateRequest) GetOwnerId() string {
-	if x != nil && x.OwnerId != nil {
-		return *x.OwnerId
 	}
 	return ""
 }
@@ -978,27 +978,27 @@ const file_home_proto_rawDesc = "" +
 	"\x05value\x18\x03 \x01(\tR\x05value\x12\x12\n" +
 	"\x04type\x18\x04 \x01(\tR\x04type\x12\x1d\n" +
 	"\n" +
-	"expires_at\x18\x05 \x01(\tR\texpiresAt\"\xe4\x02\n" +
-	"\x13HomeCreationRequest\x12\x19\n" +
-	"\bowner_id\x18\x01 \x01(\tR\aownerId\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12\x18\n" +
-	"\aaddress\x18\x03 \x01(\tR\aaddress\x12(\n" +
-	"\x10street_address_1\x18\x04 \x01(\tR\x0estreetAddress1\x12(\n" +
-	"\x10street_address_2\x18\x05 \x01(\tR\x0estreetAddress2\x12\x12\n" +
-	"\x04city\x18\x06 \x01(\tR\x04city\x12\x14\n" +
-	"\x05state\x18\a \x01(\tR\x05state\x12\x19\n" +
-	"\bzip_code\x18\b \x01(\tR\azipCode\x12\x18\n" +
-	"\acountry\x18\t \x01(\tR\acountry\x12 \n" +
-	"\vdescription\x18\n" +
-	" \x01(\tR\vdescription\x12\x12\n" +
-	"\x04tags\x18\v \x03(\tR\x04tags\x12\x1b\n" +
-	"\timage_url\x18\f \x01(\tR\bimageUrl\"_\n" +
+	"expires_at\x18\x05 \x01(\tR\texpiresAt\"\xc9\x02\n" +
+	"\x13HomeCreationRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
+	"\aaddress\x18\x02 \x01(\tR\aaddress\x12(\n" +
+	"\x10street_address_1\x18\x03 \x01(\tR\x0estreetAddress1\x12(\n" +
+	"\x10street_address_2\x18\x04 \x01(\tR\x0estreetAddress2\x12\x12\n" +
+	"\x04city\x18\x05 \x01(\tR\x04city\x12\x14\n" +
+	"\x05state\x18\x06 \x01(\tR\x05state\x12\x19\n" +
+	"\bzip_code\x18\a \x01(\tR\azipCode\x12\x18\n" +
+	"\acountry\x18\b \x01(\tR\acountry\x12 \n" +
+	"\vdescription\x18\t \x01(\tR\vdescription\x12\x12\n" +
+	"\x04tags\x18\n" +
+	" \x03(\tR\x04tags\x12\x1b\n" +
+	"\timage_url\x18\v \x01(\tR\bimageUrl\"_\n" +
 	"\x14HomeCreationResponse\x12\x17\n" +
 	"\ahome_id\x18\x01 \x01(\tR\x06homeId\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x14\n" +
-	"\x05error\x18\x03 \x01(\tR\x05error\"&\n" +
+	"\x05error\x18\x03 \x01(\tR\x05error\"A\n" +
 	"\vHomeRequest\x12\x17\n" +
-	"\ahome_id\x18\x01 \x01(\tR\x06homeId\"\x9a\x03\n" +
+	"\ahome_id\x18\x01 \x01(\tR\x06homeId\x12\x19\n" +
+	"\bowner_id\x18\x02 \x01(\tR\aownerId\"\x9a\x03\n" +
 	"\fHomeResponse\x12\x17\n" +
 	"\ahome_id\x18\x01 \x01(\tR\x06homeId\x12\x19\n" +
 	"\bowner_id\x18\x02 \x01(\tR\aownerId\x12\x12\n" +
@@ -1018,10 +1018,10 @@ const file_home_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\x0e \x01(\tR\tupdatedAt\"\xc8\x04\n" +
 	"\x11HomeUpdateRequest\x12\x17\n" +
-	"\ahome_id\x18\x01 \x01(\tR\x06homeId\x12\x17\n" +
-	"\x04name\x18\x02 \x01(\tH\x00R\x04name\x88\x01\x01\x12\x1d\n" +
-	"\aaddress\x18\x03 \x01(\tH\x01R\aaddress\x88\x01\x01\x12\x1e\n" +
-	"\bowner_id\x18\x04 \x01(\tH\x02R\aownerId\x88\x01\x01\x12-\n" +
+	"\ahome_id\x18\x01 \x01(\tR\x06homeId\x12\x1e\n" +
+	"\bowner_id\x18\x02 \x01(\tH\x00R\aownerId\x88\x01\x01\x12\x17\n" +
+	"\x04name\x18\x03 \x01(\tH\x01R\x04name\x88\x01\x01\x12\x1d\n" +
+	"\aaddress\x18\x04 \x01(\tH\x02R\aaddress\x88\x01\x01\x12-\n" +
 	"\x10street_address_1\x18\x05 \x01(\tH\x03R\x0estreetAddress1\x88\x01\x01\x12-\n" +
 	"\x10street_address_2\x18\x06 \x01(\tH\x04R\x0estreetAddress2\x88\x01\x01\x12\x17\n" +
 	"\x04city\x18\a \x01(\tH\x05R\x04city\x88\x01\x01\x12\x19\n" +
@@ -1032,11 +1032,11 @@ const file_home_proto_rawDesc = "" +
 	"\vdescription\x18\v \x01(\tH\tR\vdescription\x88\x01\x01\x12\x12\n" +
 	"\x04tags\x18\f \x03(\tR\x04tags\x12 \n" +
 	"\timage_url\x18\r \x01(\tH\n" +
-	"R\bimageUrl\x88\x01\x01B\a\n" +
+	"R\bimageUrl\x88\x01\x01B\v\n" +
+	"\t_owner_idB\a\n" +
 	"\x05_nameB\n" +
 	"\n" +
-	"\b_addressB\v\n" +
-	"\t_owner_idB\x13\n" +
+	"\b_addressB\x13\n" +
 	"\x11_street_address_1B\x13\n" +
 	"\x11_street_address_2B\a\n" +
 	"\x05_cityB\b\n" +

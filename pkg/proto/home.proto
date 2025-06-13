@@ -30,18 +30,17 @@ message Code {
 
 // HomeCreation messages
 message HomeCreationRequest {
-  string owner_id = 1;
-  string name = 2;
-  string address = 3;
-  string street_address_1 = 4;
-  string street_address_2 = 5;
-  string city = 6;
-  string state = 7;
-  string zip_code = 8;
-  string country = 9;
-  string description = 10;
-  repeated string tags = 11;
-  string image_url = 12;
+  string name = 1;
+  string address = 2;
+  string street_address_1 = 3;
+  string street_address_2 = 4;
+  string city = 5;
+  string state = 6;
+  string zip_code = 7;
+  string country = 8;
+  string description = 9;
+  repeated string tags = 10;
+  string image_url = 11;
 }
 
 message HomeCreationResponse {
@@ -53,6 +52,7 @@ message HomeCreationResponse {
 // GetHome messages
 message HomeRequest {
   string home_id = 1;
+  string owner_id = 2;
 }
 
 message HomeResponse {
@@ -75,9 +75,9 @@ message HomeResponse {
 // UpdateHome messages
 message HomeUpdateRequest {
   string home_id = 1;
-  optional string name = 2;
-  optional string address = 3;
-  optional string owner_id = 4;
+  optional string owner_id = 2;
+  optional string name = 3;
+  optional string address = 4;
   optional string street_address_1 = 5;
   optional string street_address_2 = 6;
   optional string city = 7;
