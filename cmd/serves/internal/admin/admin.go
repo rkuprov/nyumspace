@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/sql"
 	"github.com/rkuprov/nyumspace/pkg/daemon"
@@ -22,25 +21,6 @@ func NewAdmin(d daemon.Daemon) Admin {
 	return Admin{
 		DB: d.DB,
 	}
-}
-
-func (a *Admin) CheckToken(ctx context.Context, token string) (bool, error) {
-	var discard string
-	var expiresAt time.Time
-
-	err := a.DB.QueryRow(ctx, sql.GetSession, token).Scan(&discard, &expiresAt)
-	if err != nil {
-		if !errors.Is(err, pgx.ErrNoRows) {
-			return false, err // Token does not exist
-		}
-		return false, nil // Token does not exist, but no error
-	}
-
-	if expiresAt.Before(time.Now()) {
-		return false, nil // Token exists but is expired
-	}
-
-	return true, nil
 }
 
 func (a *Admin) GetAllUsers(ctx context.Context) ([]nyum.UserResponse, error) {

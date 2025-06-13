@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/sql"
 	"github.com/rkuprov/nyumspace/pkg/daemon"
@@ -24,24 +24,6 @@ func NewUsers(d *daemon.Daemon) *Users {
 	return &Users{
 		DB: d.DB,
 	}
-}
-
-func (u *Users) CheckToken(ctx context.Context, token string) (bool, error) {
-	var discard string
-	var expiresAt time.Time
-	err := u.DB.QueryRow(ctx, sql.GetSession, token).Scan(&discard, &expiresAt)
-	if err != nil {
-		if !errors.Is(err, pgx.ErrNoRows) {
-			return false, err // Token does not exist
-		}
-		return false, nil // Token does not exist, but no error
-	}
-
-	if expiresAt.Before(time.Now()) {
-		return false, nil // Token exists but is expired
-	}
-
-	return true, nil
 }
 
 func (u *Users) RegisterUser(ctx context.Context, req *nyum.UserRegistrationRequest) (*nyum.UserRegistrationResponse, error) {
@@ -127,10 +109,11 @@ func (u *Users) LoginUser(ctx context.Context, req *nyum.UserLoginRequest) (*nyu
 	var userID, hashedPassword string
 	row := u.DB.QueryRow(ctx, sql.GetUserByEmail, req.Email)
 	if err := row.Scan(&userID, &hashedPassword); err != nil {
-		return nil, errors.New("invalid email or password")
+		return nil, errors.New("could not find user with provided email")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(req.Password)); err != nil {
+		log.Println(err)
 		return nil, errors.New("invalid email or password")
 	}
 
@@ -139,6 +122,7 @@ func (u *Users) LoginUser(ctx context.Context, req *nyum.UserLoginRequest) (*nyu
 	expiresAt := time.Now().Add(24 * time.Hour)
 	_, err := u.DB.Exec(ctx, sql.CreateSession, sessionToken, userID, expiresAt)
 	if err != nil {
+		log.Println(err)
 		return nil, fmt.Errorf("failed to create session: %w", err)
 	}
 

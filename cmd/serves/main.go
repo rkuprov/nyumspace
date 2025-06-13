@@ -27,8 +27,10 @@ func main() {
 func setupRoutes(d daemon.Daemon) {
 	// Create a Chi router if not already created
 	if d.Router == nil {
-		d.Router = chi.NewRouter()
+		panic("router not initialized")
 	}
+
+	m := auth.NewMiddleware(&d)
 
 	// Basic health check endpoint
 	d.Router.Get("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +45,7 @@ func setupRoutes(d daemon.Daemon) {
 	// Admin routes
 	a := admin.NewAdmin(d)
 	d.Router.Route("/admin", func(r chi.Router) {
-		r.Use(auth.SessionMiddleware(&a))
+		r.Use(m.Session)
 		r.Get("/users", handlers.GetAllUsers(&a))           // Get all users
 		r.Get("/homes", handlers.GetAllHomes(&a))           // Get all homes
 		r.Delete("/{userID}", handlers.AdminDeleteUser(&a)) // Delete user
@@ -55,7 +57,7 @@ func setupRoutes(d daemon.Daemon) {
 	d.Router.Post("/register", handlers.RegisterUser(u)) // Register a new user
 	d.Router.Post("/login", handlers.LoginUser(u))       // Login
 	d.Router.Route("/api/users", func(r chi.Router) {
-		r.Use(auth.SessionMiddleware(&a))
+		r.Use(m.Session)
 		r.Get("/{userID}", handlers.GetUser(u))       // Get user by ID
 		r.Put("/{userID}", handlers.UpdateUser(u))    // Update user
 		r.Delete("/{userID}", handlers.DeleteUser(u)) // Delete user
@@ -65,7 +67,7 @@ func setupRoutes(d daemon.Daemon) {
 	// Home routes
 	h := homes.NewHomes(&d)
 	d.Router.Route("/api/homes", func(r chi.Router) {
-		r.Use(auth.SessionMiddleware(&a))
+		r.Use(m.Session)
 		r.Post("/", handlers.CreateHome(h))           // Create a new home
 		r.Get("/{homeID}", handlers.GetHome(h))       // Get home by ID
 		r.Put("/{homeID}", handlers.UpdateHome(h))    // Update home

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/sql"
 	"github.com/rkuprov/nyumspace/pkg/daemon"
@@ -23,24 +22,6 @@ func NewHomes(d *daemon.Daemon) *Homes {
 	return &Homes{
 		DB: d.DB,
 	}
-}
-
-func (h *Homes) CheckToken(ctx context.Context, token string) (bool, error) {
-	var discard string
-	var expiresAt time.Time
-	err := h.DB.QueryRow(ctx, sql.GetSession, token).Scan(&discard, &expiresAt)
-	if err != nil {
-		if !errors.Is(err, pgx.ErrNoRows) {
-			return false, err // Token does not exist
-		}
-		return false, nil // Token does not exist, but no error
-	}
-
-	if expiresAt.Before(time.Now()) {
-		return false, nil // Token exists but is expired
-	}
-
-	return true, nil
 }
 
 // CreateHome creates a new home

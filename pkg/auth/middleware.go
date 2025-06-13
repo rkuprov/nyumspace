@@ -2,33 +2,64 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"net/http"
+	"time"
+
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/rkuprov/nyumspace/pkg/daemon"
 )
 
-type TokenChecker interface {
-	CheckToken(context.Context, string) (bool, error)
+type Middleware struct {
+	d *daemon.Daemon
 }
 
-func SessionMiddleware(tc TokenChecker) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			token := r.Header.Get("Authorization")
-			if token == "" {
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
-				return
-			}
-
-			valid, err := tc.CheckToken(r.Context(), token)
-			if err != nil {
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
-			}
-			if !valid {
-				http.Error(w, "Unauthorized", http.StatusUnauthorized)
-				return
-			}
-
-			next.ServeHTTP(w, r)
-		})
+func NewMiddleware(d *daemon.Daemon) *Middleware {
+	return &Middleware{
+		d: d,
 	}
+}
+
+func (m *Middleware) Session(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token := r.Header.Get("Authorization")
+		if token == "" {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		valid, err := checkToken(r.Context(), m.d.DB, token)
+		if err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		if !valid {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func checkToken(ctx context.Context, db *pgxpool.Pool, token string) (bool, error) {
+	var discard string
+	var expiresAt time.Time
+	err := db.QueryRow(
+		ctx,
+		`SELECT user_id, expires_at FROM user_sessions WHERE session_token = $1`,
+		token).Scan(&discard, &expiresAt)
+	if err != nil {
+		if !errors.Is(err, pgx.ErrNoRows) {
+			return false, err // Token does not exist
+		}
+		return false, nil // Token does not exist, but no error
+	}
+
+	if expiresAt.Before(time.Now()) {
+		return false, nil // Token exists but is expired
+	}
+
+	return true, nil
 }
