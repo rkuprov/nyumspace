@@ -14,23 +14,22 @@ const (
 		SELECT id, owner_id, name, street_address_1, street_address_2, city, state, zip_code, country, description, tags, image, created_at, updated_at
 		FROM homes;
 	`
-	//UpdateHomeSQL = `
-	//	UPDATE homes
-	//	SET name = COALESCE($2, name),
-	//  		owner_id = COALESCE($3, owner_id),
-	//  		street_address_1 = COALESCE($4, street_address_1),
-	//  		street_address_2 = COALESCE($5, street_address_2),
-	//  		city = COALESCE($6, city),
-	//  		state = COALESCE($7, state),
-	//  		zip_code = COALESCE($8, zip_code),
-	//  		country = COALESCE($9, country),
-	//  		description = COALESCE($10, description),
-	//  		tags = COALESCE($11, tags),
-	//  		image = COALESCE($12, image),
-	//  		updated_at = $13
-	//	WHERE id = $1
-	//	RETURNING id;
-	//`
+	UpdateHomeSQL = `
+		UPDATE homes
+		SET name = COALESCE($2, ''),
+	 		description = COALESCE($3, ''),
+	 		street_address_1 = COALESCE($4, ''),
+	 		street_address_2 = COALESCE($5, ''),
+	 		city = COALESCE($6, ''),
+	 		state = COALESCE($7, ''),
+	 		zip_code = COALESCE($8, ''),
+	 		country = COALESCE($9, ''),
+	 		image = COALESCE($10, ''),
+	 		tags = $11,
+	 		updated_at = $12
+		WHERE id = $1
+		RETURNING id;
+	`
 	DeleteHomeSQL = `
 		DELETE FROM homes WHERE id = $1
 		RETURNING id;

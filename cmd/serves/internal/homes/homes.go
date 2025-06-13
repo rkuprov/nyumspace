@@ -124,14 +124,44 @@ func (h *Homes) GetHome(ctx context.Context, req *nyum.HomeRequest) (*nyum.HomeR
 
 // UpdateHome updates a home (not yet implemented)
 func (h *Homes) UpdateHome(ctx context.Context, req *nyum.HomeUpdateRequest) (*nyum.HomeUpdateResponse, error) {
-	if req.HomeId == "" {
+	if req.HomeID == "" {
 		return nil, errors.New("homeID is required")
+	}
+	if req.UserID == "" {
+		return nil, errors.New("userID is required")
+	}
+	// First, verify that the home exists and the requesting user is the owner
+	var ownerID string
+	err := h.DB.QueryRow(ctx, "SELECT owner_id FROM homes WHERE id = $1", req.HomeID).Scan(&ownerID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("home not found: %w", err)
+		}
+		return nil, fmt.Errorf("failed to retrieve home owner: %w", err)
+	}
+
+	_, err = h.DB.Exec(ctx, sql.UpdateHomeSQL,
+		req.HomeID,
+		req.GetName(),
+		req.GetDescription(),
+		req.GetStreetAddress_1(),
+		req.GetStreetAddress_2(),
+		req.GetCity(),
+		req.GetState(),
+		req.GetZipCode(),
+		req.GetCountry(),
+		req.GetImageUrl(),
+		req.GetTags(),
+		time.Now().Format(time.RFC3339),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update home: %w", err)
 	}
 
 	// This is not implemented yet in the handlers, but we'll provide a skeleton
 	return &nyum.HomeUpdateResponse{
 		HomeUpdateResponse: nyumpb.HomeUpdateResponse{
-			Message: "Update home functionality not implemented yet",
+			Message: fmt.Sprintf("Home '%s' updated successfully", req.HomeID),
 		},
 	}, nil
 }

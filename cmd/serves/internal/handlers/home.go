@@ -97,14 +97,16 @@ func UpdateHome(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Get the user ID from the header set by middleware
+		userID := r.Header.Get(auth.UserIDHeader)
+
 		// Set the home ID from the URL parameter
-		req.HomeId = homeID
 
 		resp, err := h.UpdateHome(r.Context(), &nyum.HomeUpdateRequest{
+			UserID: userID,
+			HomeID: homeID,
 			HomeUpdateRequest: nyumpb.HomeUpdateRequest{
-				HomeId:          homeID,
 				Name:            req.Name,
-				OwnerId:         req.OwnerId,
 				StreetAddress_1: req.StreetAddress_1,
 				StreetAddress_2: req.StreetAddress_2,
 				City:            req.City,

@@ -72,6 +72,8 @@ type HomeResponse struct {
 }
 
 type HomeUpdateRequest struct {
+	UserID string
+	HomeID string
 	nyumpb.HomeUpdateRequest
 }
 type HomeUpdateResponse struct {

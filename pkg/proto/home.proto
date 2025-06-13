@@ -73,19 +73,17 @@ message HomeResponse {
 
 // UpdateHome messages
 message HomeUpdateRequest {
-  string home_id = 1;
-  optional string owner_id = 2;
-  optional string name = 3;
-  optional string address = 4;
-  optional string street_address_1 = 5;
-  optional string street_address_2 = 6;
-  optional string city = 7;
-  optional string state = 8;
-  optional string zip_code = 9;
-  optional string country = 10;
-  optional string description = 11;
-  repeated string tags = 12;
-  optional string image_url = 13;
+  optional string name = 1;
+  optional string address = 2;
+  optional string street_address_1 = 3;
+  optional string street_address_2 = 4;
+  optional string city = 5;
+  optional string state = 6;
+  optional string zip_code = 7;
+  optional string country = 8;
+  optional string description = 9;
+  repeated string tags = 10;
+  optional string image_url = 11;
 }
 
 message HomeUpdateResponse {
