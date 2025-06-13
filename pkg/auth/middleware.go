@@ -11,6 +11,10 @@ import (
 	"github.com/rkuprov/nyumspace/pkg/daemon"
 )
 
+const (
+	UserIDHeader = "NYUM-User-ID"
+)
+
 type Middleware struct {
 	d *daemon.Daemon
 }
@@ -29,7 +33,7 @@ func (m *Middleware) Session(next http.Handler) http.Handler {
 			return
 		}
 
-		valid, err := checkToken(r.Context(), m.d.DB, token)
+		userID, valid, err := checkToken(r.Context(), m.d.DB, token)
 		if err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
@@ -39,27 +43,29 @@ func (m *Middleware) Session(next http.Handler) http.Handler {
 			return
 		}
 
+		r.Header.Add("NYUM-User-ID", userID)
+
 		next.ServeHTTP(w, r)
 	})
 }
 
-func checkToken(ctx context.Context, db *pgxpool.Pool, token string) (bool, error) {
-	var discard string
+func checkToken(ctx context.Context, db *pgxpool.Pool, token string) (string, bool, error) {
+	var userID string
 	var expiresAt time.Time
 	err := db.QueryRow(
 		ctx,
 		`SELECT user_id, expires_at FROM user_sessions WHERE session_token = $1`,
-		token).Scan(&discard, &expiresAt)
+		token).Scan(&userID, &expiresAt)
 	if err != nil {
 		if !errors.Is(err, pgx.ErrNoRows) {
-			return false, err // Token does not exist
+			return "", false, err // Token does not exist
 		}
-		return false, nil // Token does not exist, but no error
+		return "", false, nil // Token does not exist, but no error
 	}
 
 	if expiresAt.Before(time.Now()) {
-		return false, nil // Token exists but is expired
+		return "", false, nil // Token exists but is expired
 	}
 
-	return true, nil
+	return userID, true, nil
 }
