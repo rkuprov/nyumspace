@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/homes"
+	"github.com/rkuprov/nyumspace/pkg/auth"
 	"github.com/rkuprov/nyumspace/pkg/gen/nyumpb"
 	"github.com/rkuprov/nyumspace/pkg/nyum"
 	"github.com/rkuprov/nyumspace/pkg/rest"
@@ -22,16 +23,18 @@ func CreateHome(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
 			rest.BadRequest(w, err)
 			return
 		}
-
-		// Validate required fields
-		if req.OwnerId == "" || req.Name == "" {
-			rest.ValidationFailed(w, errors.New("owner and name are required"))
+		userID := r.Header.Get(auth.UserIDHeader)
+		if userID == "" {
+			rest.Unauthorized(w, errors.New("user ID is required"))
 			return
+		}
+		// Validate required fields
+		if req.Name == "" {
+			req.Name = "Unnamed Home"
 		}
 
 		resp, err := h.CreateHome(r.Context(), &nyum.HomeCreationRequest{
 			HomeCreationRequest: nyumpb.HomeCreationRequest{
-				OwnerId:         req.OwnerId,
 				Name:            req.Name,
 				StreetAddress_1: req.StreetAddress_1,
 				StreetAddress_2: req.StreetAddress_2,

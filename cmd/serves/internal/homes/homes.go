@@ -27,7 +27,7 @@ func NewHomes(d *daemon.Daemon) *Homes {
 // CreateHome creates a new home
 func (h *Homes) CreateHome(ctx context.Context, req *nyum.HomeCreationRequest) (*nyum.HomeCreationResponse, error) {
 	// Validate required fields
-	if req.OwnerId == "" || req.Name == "" {
+	if req.UserID == "" || req.Name == "" {
 		return nil, errors.New("owner and name are required")
 	}
 
@@ -35,7 +35,7 @@ func (h *Homes) CreateHome(ctx context.Context, req *nyum.HomeCreationRequest) (
 
 	_, err := h.DB.Exec(ctx, sql.AddHomeSQL,
 		homeID,
-		req.OwnerId,
+		req.UserID,
 		req.Name,
 		req.StreetAddress_1,
 		req.StreetAddress_2,

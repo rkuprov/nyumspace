@@ -57,6 +57,7 @@ type Code struct {
 }
 
 type HomeCreationRequest struct {
+	UserID string
 	nyumpb.HomeCreationRequest
 }
 type HomeCreationResponse struct {
