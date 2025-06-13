@@ -23,17 +23,16 @@ func CreateHome(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
 			rest.BadRequest(w, err)
 			return
 		}
+
+		// Get the user ID from the header set by middleware
 		userID := r.Header.Get(auth.UserIDHeader)
 		if userID == "" {
 			rest.Unauthorized(w, errors.New("user ID is required"))
 			return
 		}
-		// Validate required fields
-		if req.Name == "" {
-			req.Name = "Unnamed Home"
-		}
 
 		resp, err := h.CreateHome(r.Context(), &nyum.HomeCreationRequest{
+			UserID: userID,
 			HomeCreationRequest: nyumpb.HomeCreationRequest{
 				Name:            req.Name,
 				StreetAddress_1: req.StreetAddress_1,
@@ -65,9 +64,13 @@ func GetHome(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Get the user ID from the header set by middleware
+		userID := r.Header.Get(auth.UserIDHeader)
+
 		resp, err := h.GetHome(r.Context(), &nyum.HomeRequest{
 			HomeRequest: nyumpb.HomeRequest{
-				HomeId: homeID,
+				HomeId:  homeID,
+				OwnerId: userID,
 			},
 		})
 		if err != nil {
@@ -131,13 +134,41 @@ func DeleteHome(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Get the user ID from the header set by middleware
+		userID := r.Header.Get(auth.UserIDHeader)
+
 		resp, err := h.DeleteHome(r.Context(), &nyum.HomeDeleteRequest{
+			UserID: userID,
 			HomeDeleteRequest: nyumpb.HomeDeleteRequest{
 				HomeId: homeID,
 			},
 		})
 		if err != nil {
+			if err.Error() == "unauthorized: user does not have permission to delete this home" {
+				rest.Unauthorized(w, errors.New("you don't have permission to delete this home"))
+				return
+			}
 			rest.InternalError(w, fmt.Errorf("failed to delete home: %w", err))
+			return
+		}
+
+		rest.OK(w, resp)
+	}
+}
+
+// GetAllHomesForUser creates a handler for retrieving all homes for a specific user
+func GetAllHomesForUser(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Get the user ID from the header set by middleware
+		userID := r.Header.Get(auth.UserIDHeader)
+		if userID == "" {
+			rest.Unauthorized(w, errors.New("user ID is required"))
+			return
+		}
+
+		resp, err := h.GetAllHomesForUser(r.Context(), userID)
+		if err != nil {
+			rest.InternalError(w, fmt.Errorf("failed to get homes for user: %w", err))
 			return
 		}
 

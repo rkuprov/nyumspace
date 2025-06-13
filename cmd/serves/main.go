@@ -68,6 +68,7 @@ func setupRoutes(d daemon.Daemon) {
 	h := homes.NewHomes(&d)
 	d.Router.Route("/api/homes", func(r chi.Router) {
 		r.Use(m.Session)
+		r.Get("/all", handlers.GetAllHomesForUser(h)) // Get all homes for the current user
 		r.Post("/", handlers.CreateHome(h))           // Create a new home
 		r.Get("/{homeID}", handlers.GetHome(h))       // Get home by ID
 		r.Put("/{homeID}", handlers.UpdateHome(h))    // Update home

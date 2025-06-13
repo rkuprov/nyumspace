@@ -79,6 +79,7 @@ type HomeUpdateResponse struct {
 }
 
 type HomeDeleteRequest struct {
+	UserID string
 	nyumpb.HomeDeleteRequest
 }
 type HomeDeleteResponse struct {
