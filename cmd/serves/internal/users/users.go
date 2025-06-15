@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/sql"
 	"github.com/rkuprov/nyumspace/pkg/daemon"
@@ -15,6 +16,8 @@ import (
 	"github.com/rkuprov/nyumspace/pkg/nyum"
 	"golang.org/x/crypto/bcrypt"
 )
+
+var ErrNotFound = errors.New("not found")
 
 type Users struct {
 	DB *pgxpool.Pool
@@ -34,6 +37,7 @@ func (u *Users) RegisterUser(ctx context.Context, req *nyum.UserRegistrationRequ
 
 	id := uuid.NewString()
 	row := u.DB.QueryRow(ctx, sql.RegisterUser, id, req.Username, req.Email, string(hash))
+	// todo: implement response for failed registration due to duplicate email or username
 	if err = row.Scan(&id); err != nil {
 		return nil, err
 	}
@@ -46,15 +50,15 @@ func (u *Users) RegisterUser(ctx context.Context, req *nyum.UserRegistrationRequ
 	}, nil
 }
 
+// GetUser retrieves a user by their ID. User ID is required and must be provided.
 func (u *Users) GetUser(ctx context.Context, req *nyum.UserRequest) (*nyum.UserResponse, error) {
-	if req.UserId == "" {
-		return nil, errors.New("userID is required")
-	}
-
 	row := u.DB.QueryRow(ctx, sql.GetUser, req.UserId)
 	var id, name, email string
 	if err := row.Scan(&id, &name, &email); err != nil {
-		return nil, fmt.Errorf("user not found: %w", err)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
 	}
 
 	return &nyum.UserResponse{
@@ -67,13 +71,18 @@ func (u *Users) GetUser(ctx context.Context, req *nyum.UserRequest) (*nyum.UserR
 }
 
 func (u *Users) UpdateUser(ctx context.Context, req *nyum.UserUpdateRequest) (*nyum.UserUpdateResponse, error) {
-	if req.UserId == "" {
-		return nil, errors.New("userID is required")
+	var id string
+	var hashedPassword []byte
+	var err error
+	if req.GetPassword() != "" {
+		hashedPassword, err = bcrypt.GenerateFromPassword([]byte(req.GetPassword()), bcrypt.DefaultCost)
+		if err != nil {
+			return nil, fmt.Errorf("failed to hash password: %w", err)
+		}
 	}
 
-	row := u.DB.QueryRow(ctx, sql.UpdateUser, req.UserId, req.Username, req.Email)
-	var id string
-	if err := row.Scan(&id); err != nil {
+	err = u.DB.QueryRow(ctx, sql.UpdateUser, req.UserId, req.Username, req.Email, string(hashedPassword)).Scan(&id)
+	if err != nil {
 		return nil, fmt.Errorf("failed to update user: %w", err)
 	}
 

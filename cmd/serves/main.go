@@ -58,10 +58,10 @@ func setupRoutes(d daemon.Daemon) {
 	d.Router.Post("/login", handlers.LoginUser(u))       // Login
 	d.Router.Route("/api/users", func(r chi.Router) {
 		r.Use(m.Session)
-		r.Get("/{userID}", handlers.GetUser(u))       // Get user by ID
-		r.Put("/{userID}", handlers.UpdateUser(u))    // Update user
-		r.Delete("/{userID}", handlers.DeleteUser(u)) // Delete user
-		r.Post("/logout", handlers.LogoutUser(u))     // Logout
+		r.Get("/{user-id}", handlers.GetUser(u))       // Get user by ID
+		r.Put("/{user-id}", handlers.UpdateUser(u))    // Update user
+		r.Delete("/{user-id}", handlers.DeleteUser(u)) // Delete user
+		r.Post("/logout", handlers.LogoutUser(u))      // Logout
 	})
 
 	// Home routes

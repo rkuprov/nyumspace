@@ -19,6 +19,7 @@ type UserResponse struct {
 }
 
 type UserUpdateRequest struct {
+	UserID string
 	nyumpb.UserUpdateRequest
 }
 type UserUpdateResponse struct {

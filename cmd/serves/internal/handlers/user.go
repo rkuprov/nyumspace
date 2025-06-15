@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/users"
+	"github.com/rkuprov/nyumspace/pkg/auth"
 	"github.com/rkuprov/nyumspace/pkg/gen/nyumpb"
 	"github.com/rkuprov/nyumspace/pkg/nyum"
 	"github.com/rkuprov/nyumspace/pkg/rest"
@@ -71,7 +72,12 @@ func GetUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 			},
 		})
 		if err != nil {
-			http.Error(w, fmt.Sprintf("User not found: %v", err), http.StatusNotFound)
+			if errors.Is(err, users.ErrNotFound) {
+				// If user not found, return 404
+				rest.ErrNotFound(w, err)
+				return
+			}
+			rest.ErrInternal(w, fmt.Errorf("failed to get user: %w", err))
 			return
 		}
 
@@ -82,7 +88,7 @@ func GetUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 // UpdateUser creates a handler for updating a user
 func UpdateUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userID := chi.URLParam(r, "userID")
+		userID := chi.URLParam(r, "user-id")
 		if userID == "" {
 			rest.ErrValidation(w, errors.New("userID is required"))
 			return
@@ -94,12 +100,17 @@ func UpdateUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Set the user ID from the URL parameter
-		req.UserId = userID
+		sessionUser := r.Header.Get(auth.UserIDHeader)
+		if sessionUser != userID {
+			rest.ErrUnauthorized(w, errors.New("user unauthorized to update this profile"))
+			return
+		}
+
+		// todo: add pw validating logic
 
 		resp, err := u.UpdateUser(r.Context(), &nyum.UserUpdateRequest{
+			UserID: userID,
 			UserUpdateRequest: nyumpb.UserUpdateRequest{
-				UserId:   userID,
 				Username: req.Username,
 				Email:    req.Email,
 			},
@@ -116,9 +127,14 @@ func UpdateUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 // DeleteUser creates a handler for deleting a user
 func DeleteUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userID := chi.URLParam(r, "userID")
+		userID := chi.URLParam(r, "user-id")
 		if userID == "" {
 			rest.ErrValidation(w, errors.New("userID is required"))
+			return
+		}
+		sessionUser := r.Header.Get(auth.UserIDHeader)
+		if sessionUser != userID {
+			rest.ErrUnauthorized(w, errors.New("user unauthorized to delete this profile"))
 			return
 		}
 
@@ -134,7 +150,7 @@ func DeleteUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 
 		_, err = u.LogoutUser(r.Context(), &nyum.UserLogoutRequest{
 			UserLogoutRequest: nyumpb.UserLogoutRequest{
-				SessionToken: r.Header.Get("Authorization"),
+				SessionToken: r.Header.Get(auth.AuthorizationHeader),
 			},
 		})
 		if err != nil {

@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	UserIDHeader = "NYUM-User-ID"
+	UserIDHeader        = "NYUM-User-ID"
+	AuthorizationHeader = "Authorization"
 )
 
 type Middleware struct {

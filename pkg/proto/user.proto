@@ -29,10 +29,9 @@ message UserResponse {
 
 // UpdateUser messages
 message UserUpdateRequest {
-  string user_id = 1;
-  optional string username = 2;
-  optional string email = 3;
-  optional string password = 4;
+  optional string username = 1;
+  optional string email = 2;
+  optional string password = 3;
 }
 
 message UserUpdateResponse {
