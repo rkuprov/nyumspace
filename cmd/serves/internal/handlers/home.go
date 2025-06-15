@@ -20,14 +20,14 @@ func CreateHome(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		req, err := rest.ExtractPayload[nyumpb.HomeCreationRequest](r)
 		if err != nil {
-			rest.BadRequest(w, err)
+			rest.ErrBadRequest(w, err)
 			return
 		}
 
 		// Get the user ID from the header set by middleware
 		userID := r.Header.Get(auth.UserIDHeader)
 		if userID == "" {
-			rest.Unauthorized(w, errors.New("user ID is required"))
+			rest.ErrUnauthorized(w, errors.New("user ID is required"))
 			return
 		}
 
@@ -47,7 +47,7 @@ func CreateHome(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
 			},
 		})
 		if err != nil {
-			rest.InternalError(w, fmt.Errorf("failed to create home: %w", err))
+			rest.ErrInternal(w, fmt.Errorf("failed to create home: %w", err))
 			return
 		}
 
@@ -60,7 +60,7 @@ func GetHome(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		homeID := chi.URLParam(r, "homeID")
 		if homeID == "" {
-			rest.ValidationFailed(w, errors.New("homeID is required"))
+			rest.ErrValidation(w, errors.New("homeID is required"))
 			return
 		}
 
@@ -69,12 +69,22 @@ func GetHome(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
 
 		resp, err := h.GetHome(r.Context(), &nyum.HomeRequest{
 			HomeRequest: nyumpb.HomeRequest{
-				HomeId:  homeID,
-				OwnerId: userID,
+				HomeId: homeID,
 			},
 		})
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Home not found: %v", err), http.StatusNotFound)
+			rest.ErrInternal(w, err)
+			return
+		}
+
+		if resp == nil {
+			rest.NotFound(w, fmt.Sprintf("home with ID %s not found", homeID))
+			return
+		}
+
+		// Authorization check: Ensure the requesting user is the owner of the home
+		if resp.GetOwnerId() != "" && resp.GetOwnerId() != userID {
+			rest.ErrUnauthorized(w, errors.New("user unauthorized to access this home"))
 			return
 		}
 
@@ -85,22 +95,42 @@ func GetHome(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
 // UpdateHome creates a handler for updating a home
 func UpdateHome(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		homeID := chi.URLParam(r, "homeID")
+		homeID := chi.URLParam(r, "home-id")
 		if homeID == "" {
-			rest.ValidationFailed(w, errors.New("homeID is required"))
+			rest.ErrValidation(w, errors.New("home-id is required"))
 			return
 		}
 
 		req, err := rest.ExtractPayload[nyumpb.HomeUpdateRequest](r)
 		if err != nil {
-			rest.BadRequest(w, err)
+			rest.ErrBadRequest(w, err)
 			return
 		}
 
 		// Get the user ID from the header set by middleware
 		userID := r.Header.Get(auth.UserIDHeader)
+		if userID == "" {
+			rest.ErrUnauthorized(w, errors.New("user ID is required"))
+			return
+		}
 
-		// Set the home ID from the URL parameter
+		got, err := h.GetHome(r.Context(), &nyum.HomeRequest{
+			HomeRequest: nyumpb.HomeRequest{
+				HomeId: homeID,
+			},
+		})
+		if err != nil {
+			rest.ErrInternal(w, fmt.Errorf("failed to get home: %w", err))
+			return
+		}
+		if got == nil {
+			rest.ErrNotFound(w, fmt.Errorf("home with ID %s not found", homeID))
+			return
+		}
+		if got.GetOwnerId() != userID {
+			rest.ErrUnauthorized(w, errors.New("user unauthorized to update this home"))
+			return
+		}
 
 		resp, err := h.UpdateHome(r.Context(), &nyum.HomeUpdateRequest{
 			UserID: userID,
@@ -119,7 +149,11 @@ func UpdateHome(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
 			},
 		})
 		if err != nil {
-			rest.InternalError(w, fmt.Errorf("failed to update home: %w", err))
+			if errors.Is(err, homes.ErrNotFound) {
+				rest.ErrNotFound(w, fmt.Errorf("home with ID %s not found", homeID))
+				return
+			}
+			rest.ErrInternal(w, fmt.Errorf("failed to update home: %w", err))
 			return
 		}
 
@@ -132,12 +166,33 @@ func DeleteHome(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		homeID := chi.URLParam(r, "homeID")
 		if homeID == "" {
-			rest.ValidationFailed(w, errors.New("homeID is required"))
+			rest.ErrValidation(w, errors.New("homeID is required"))
 			return
 		}
 
 		// Get the user ID from the header set by middleware
 		userID := r.Header.Get(auth.UserIDHeader)
+		if userID == "" {
+			rest.ErrUnauthorized(w, errors.New("user ID is required"))
+			return
+		}
+		got, err := h.GetHome(r.Context(), &nyum.HomeRequest{
+			HomeRequest: nyumpb.HomeRequest{
+				HomeId: homeID,
+			},
+		})
+		if err != nil {
+			rest.ErrInternal(w, fmt.Errorf("failed to get home: %w", err))
+			return
+		}
+		if got == nil {
+			rest.ErrNotFound(w, fmt.Errorf("home with ID %s not found", homeID))
+			return
+		}
+		if got.GetOwnerId() != userID {
+			rest.ErrUnauthorized(w, errors.New("user unauthorized to delete this home"))
+			return
+		}
 
 		resp, err := h.DeleteHome(r.Context(), &nyum.HomeDeleteRequest{
 			UserID: userID,
@@ -147,10 +202,10 @@ func DeleteHome(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
 		})
 		if err != nil {
 			if err.Error() == "unauthorized: user does not have permission to delete this home" {
-				rest.Unauthorized(w, errors.New("you don't have permission to delete this home"))
+				rest.ErrUnauthorized(w, errors.New("you don't have permission to delete this home"))
 				return
 			}
-			rest.InternalError(w, fmt.Errorf("failed to delete home: %w", err))
+			rest.ErrInternal(w, fmt.Errorf("failed to delete home: %w", err))
 			return
 		}
 
@@ -164,13 +219,21 @@ func GetAllHomesForUser(h *homes.Homes) func(w http.ResponseWriter, r *http.Requ
 		// Get the user ID from the header set by middleware
 		userID := r.Header.Get(auth.UserIDHeader)
 		if userID == "" {
-			rest.Unauthorized(w, errors.New("user ID is required"))
+			rest.ErrUnauthorized(w, errors.New("user ID is required"))
 			return
 		}
 
-		resp, err := h.GetAllHomesForUser(r.Context(), userID)
-		if err != nil {
-			rest.InternalError(w, fmt.Errorf("failed to get homes for user: %w", err))
+		resp, errs := h.GetAllHomesForUser(r.Context(), userID)
+		if len(errs) != 0 {
+			errMsgs := make([]string, len(errs))
+			for _, err := range errs {
+				errMsgs = append(errMsgs, err.Error())
+			}
+			rest.Mixed(w, http.StatusOK, rest.Result[nyum.HomeResponse]{
+				Message: "Some items could not be retrieved",
+				Data:    resp,
+				Errors:  errMsgs,
+			})
 			return
 		}
 

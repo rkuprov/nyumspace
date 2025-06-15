@@ -17,7 +17,7 @@ func GetAllUsers(a *admin.Admin) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		resp, err := a.GetAllUsers(r.Context())
 		if err != nil {
-			rest.InternalError(w, fmt.Errorf("failed to get users: %w", err))
+			rest.ErrInternal(w, fmt.Errorf("failed to get users: %w", err))
 			return
 		}
 
@@ -30,7 +30,7 @@ func GetAllHomes(a *admin.Admin) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		resp, err := a.GetAllHomes(r.Context())
 		if err != nil {
-			rest.InternalError(w, fmt.Errorf("failed to get homes: %w", err))
+			rest.ErrInternal(w, fmt.Errorf("failed to get homes: %w", err))
 			return
 		}
 
@@ -43,7 +43,7 @@ func AdminDeleteUser(a *admin.Admin) func(w http.ResponseWriter, r *http.Request
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := chi.URLParam(r, "userID")
 		if userID == "" {
-			rest.ValidationFailed(w, errors.New("userID is required"))
+			rest.ErrValidation(w, errors.New("userID is required"))
 			return
 		}
 
@@ -53,7 +53,7 @@ func AdminDeleteUser(a *admin.Admin) func(w http.ResponseWriter, r *http.Request
 			},
 		})
 		if err != nil {
-			rest.InternalError(w, fmt.Errorf("failed to delete user: %w", err))
+			rest.ErrInternal(w, fmt.Errorf("failed to delete user: %w", err))
 			return
 		}
 
@@ -66,7 +66,7 @@ func AdminDeleteHome(a *admin.Admin) func(w http.ResponseWriter, r *http.Request
 	return func(w http.ResponseWriter, r *http.Request) {
 		homeID := chi.URLParam(r, "homeID")
 		if homeID == "" {
-			rest.ValidationFailed(w, errors.New("homeID is required"))
+			rest.ErrValidation(w, errors.New("homeID is required"))
 			return
 		}
 
@@ -76,7 +76,7 @@ func AdminDeleteHome(a *admin.Admin) func(w http.ResponseWriter, r *http.Request
 			},
 		})
 		if err != nil {
-			rest.InternalError(w, fmt.Errorf("failed to delete home: %w", err))
+			rest.ErrInternal(w, fmt.Errorf("failed to delete home: %w", err))
 			return
 		}
 

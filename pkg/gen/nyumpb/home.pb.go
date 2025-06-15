@@ -447,7 +447,6 @@ func (x *HomeCreationResponse) GetError() string {
 type HomeRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	HomeId        string                 `protobuf:"bytes,1,opt,name=home_id,json=homeId,proto3" json:"home_id,omitempty"`
-	OwnerId       string                 `protobuf:"bytes,2,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -485,13 +484,6 @@ func (*HomeRequest) Descriptor() ([]byte, []int) {
 func (x *HomeRequest) GetHomeId() string {
 	if x != nil {
 		return x.HomeId
-	}
-	return ""
-}
-
-func (x *HomeRequest) GetOwnerId() string {
-	if x != nil {
-		return x.OwnerId
 	}
 	return ""
 }
@@ -970,10 +962,9 @@ const file_home_proto_rawDesc = "" +
 	"\x14HomeCreationResponse\x12\x17\n" +
 	"\ahome_id\x18\x01 \x01(\tR\x06homeId\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x14\n" +
-	"\x05error\x18\x03 \x01(\tR\x05error\"A\n" +
+	"\x05error\x18\x03 \x01(\tR\x05error\"&\n" +
 	"\vHomeRequest\x12\x17\n" +
-	"\ahome_id\x18\x01 \x01(\tR\x06homeId\x12\x19\n" +
-	"\bowner_id\x18\x02 \x01(\tR\aownerId\"\x9a\x03\n" +
+	"\ahome_id\x18\x01 \x01(\tR\x06homeId\"\x9a\x03\n" +
 	"\fHomeResponse\x12\x17\n" +
 	"\ahome_id\x18\x01 \x01(\tR\x06homeId\x12\x19\n" +
 	"\bowner_id\x18\x02 \x01(\tR\aownerId\x12\x12\n" +

@@ -51,7 +51,6 @@ message HomeCreationResponse {
 // GetHome messages
 message HomeRequest {
   string home_id = 1;
-  string owner_id = 2;
 }
 
 message HomeResponse {

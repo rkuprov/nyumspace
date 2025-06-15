@@ -20,13 +20,13 @@ func RegisterUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		req, err := rest.ExtractPayload[nyumpb.UserRegistrationRequest](r)
 		if err != nil {
-			rest.BadRequest(w, err)
+			rest.ErrBadRequest(w, err)
 			return
 		}
 
 		// Validate required fields
 		if req.Username == "" || req.Email == "" || req.Password == "" {
-			rest.ValidationFailed(w, errors.New("must have username, email, and password"))
+			rest.ErrValidation(w, errors.New("must have username, email, and password"))
 			return
 		}
 
@@ -38,7 +38,7 @@ func RegisterUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 			},
 		})
 		if err != nil {
-			rest.InternalError(w, fmt.Errorf("failed to register user: %w", err))
+			rest.ErrInternal(w, fmt.Errorf("failed to register user: %w", err))
 			return
 		}
 
@@ -48,7 +48,7 @@ func RegisterUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 		}
 		_, err = beginSession(r.Context(), u, loginReq, w)
 		if err != nil {
-			rest.InternalError(w, fmt.Errorf("failed to login after registration: %w", err))
+			rest.ErrInternal(w, fmt.Errorf("failed to login after registration: %w", err))
 			return
 		}
 
@@ -61,7 +61,7 @@ func GetUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := chi.URLParam(r, "userID")
 		if userID == "" {
-			rest.ValidationFailed(w, errors.New("userID is required"))
+			rest.ErrValidation(w, errors.New("userID is required"))
 			return
 		}
 
@@ -84,13 +84,13 @@ func UpdateUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := chi.URLParam(r, "userID")
 		if userID == "" {
-			rest.ValidationFailed(w, errors.New("userID is required"))
+			rest.ErrValidation(w, errors.New("userID is required"))
 			return
 		}
 
 		req, err := rest.ExtractPayload[nyumpb.UserUpdateRequest](r)
 		if err != nil {
-			rest.BadRequest(w, err)
+			rest.ErrBadRequest(w, err)
 			return
 		}
 
@@ -105,7 +105,7 @@ func UpdateUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 			},
 		})
 		if err != nil {
-			rest.InternalError(w, fmt.Errorf("failed to update user: %w", err))
+			rest.ErrInternal(w, fmt.Errorf("failed to update user: %w", err))
 			return
 		}
 
@@ -118,7 +118,7 @@ func DeleteUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := chi.URLParam(r, "userID")
 		if userID == "" {
-			rest.ValidationFailed(w, errors.New("userID is required"))
+			rest.ErrValidation(w, errors.New("userID is required"))
 			return
 		}
 
@@ -128,7 +128,7 @@ func DeleteUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 			},
 		})
 		if err != nil {
-			rest.InternalError(w, fmt.Errorf("failed to delete user: %w", err))
+			rest.ErrInternal(w, fmt.Errorf("failed to delete user: %w", err))
 			return
 		}
 
@@ -138,7 +138,7 @@ func DeleteUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 			},
 		})
 		if err != nil {
-			rest.InternalError(w, fmt.Errorf("failed to logout user after deletion: %w", err))
+			rest.ErrInternal(w, fmt.Errorf("failed to logout user after deletion: %w", err))
 			return
 		}
 
@@ -151,19 +151,19 @@ func LoginUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		req, err := rest.ExtractPayload[nyumpb.UserLoginRequest](r)
 		if err != nil {
-			rest.BadRequest(w, err)
+			rest.ErrBadRequest(w, err)
 			return
 		}
 
 		// Validate required fields
 		if req.Email == "" || req.Password == "" {
-			rest.ValidationFailed(w, errors.New("email and password are required"))
+			rest.ErrValidation(w, errors.New("email and password are required"))
 			return
 		}
 
 		resp, err := beginSession(r.Context(), u, req, w)
 		if err != nil {
-			rest.InternalError(w, fmt.Errorf("failed to login: %w", err))
+			rest.ErrInternal(w, fmt.Errorf("failed to login: %w", err))
 			return
 		}
 
@@ -177,7 +177,7 @@ func LogoutUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 		// Get session token from Authorization header
 		sessionToken := r.Header.Get("Authorization")
 		if sessionToken == "" {
-			rest.Unauthorized(w, errors.New("missing Authorization header"))
+			rest.ErrUnauthorized(w, errors.New("missing Authorization header"))
 			return
 		}
 
@@ -192,7 +192,7 @@ func LogoutUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 			},
 		})
 		if err != nil {
-			rest.InternalError(w, fmt.Errorf("failed to logout: %w", err))
+			rest.ErrInternal(w, fmt.Errorf("failed to logout: %w", err))
 			return
 		}
 

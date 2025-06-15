@@ -68,11 +68,11 @@ func setupRoutes(d daemon.Daemon) {
 	h := homes.NewHomes(&d)
 	d.Router.Route("/api/homes", func(r chi.Router) {
 		r.Use(m.Session)
-		r.Get("/all", handlers.GetAllHomesForUser(h)) // Get all homes for the current user
-		r.Post("/", handlers.CreateHome(h))           // Create a new home
-		r.Get("/{homeID}", handlers.GetHome(h))       // Get home by ID
-		r.Put("/{homeID}", handlers.UpdateHome(h))    // Update home
-		r.Delete("/{homeID}", handlers.DeleteHome(h)) // Delete home
+		r.Get("/all", handlers.GetAllHomesForUser(h))  // Get all homes for the current user
+		r.Post("/", handlers.CreateHome(h))            // Create a new home
+		r.Get("/{home-id}", handlers.GetHome(h))       // Get home by ID
+		r.Put("/{home-id}", handlers.UpdateHome(h))    // Update home
+		r.Delete("/{home-id}", handlers.DeleteHome(h)) // Delete home
 	})
 
 	// Set router to daemon

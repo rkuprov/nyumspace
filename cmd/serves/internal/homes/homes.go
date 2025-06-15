@@ -15,7 +15,10 @@ import (
 	"github.com/rkuprov/nyumspace/pkg/nyum"
 )
 
-var ErrUserUnauthorized = errors.New("unauthorized: user does not have permission to access this resource")
+var (
+	ErrUserUnauthorized = errors.New("unauthorized: user does not have permission to access this resource")
+	ErrNotFound         = errors.New("not found")
+)
 
 type Homes struct {
 	DB *pgxpool.Pool
@@ -93,13 +96,11 @@ func (h *Homes) GetHome(ctx context.Context, req *nyum.HomeRequest) (*nyum.HomeR
 	)
 
 	if err := row.Scan(&id, &ownerID, &name, &streetAddress1, &streetAddress2, &city, &state,
-		&zipCode, &country, &description, &tags, &imageURL, &createdAt, &updatedAt); err != nil && errors.Is(err, pgx.ErrNoRows) {
+		&zipCode, &country, &description, &tags, &imageURL, &createdAt, &updatedAt); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
 		return nil, err
-	}
-
-	// Authorization check: Ensure the requesting user is the owner of the home
-	if req.GetOwnerId() != "" && ownerID != req.GetOwnerId() {
-		return nil, ErrUserUnauthorized
 	}
 
 	return &nyum.HomeResponse{
@@ -124,23 +125,7 @@ func (h *Homes) GetHome(ctx context.Context, req *nyum.HomeRequest) (*nyum.HomeR
 
 // UpdateHome updates a home (not yet implemented)
 func (h *Homes) UpdateHome(ctx context.Context, req *nyum.HomeUpdateRequest) (*nyum.HomeUpdateResponse, error) {
-	if req.HomeID == "" {
-		return nil, errors.New("homeID is required")
-	}
-	if req.UserID == "" {
-		return nil, errors.New("userID is required")
-	}
-	// First, verify that the home exists and the requesting user is the owner
-	var ownerID string
-	err := h.DB.QueryRow(ctx, "SELECT owner_id FROM homes WHERE id = $1", req.HomeID).Scan(&ownerID)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, fmt.Errorf("home not found: %w", err)
-		}
-		return nil, fmt.Errorf("failed to retrieve home owner: %w", err)
-	}
-
-	_, err = h.DB.Exec(ctx, sql.UpdateHomeSQL,
+	_, err := h.DB.Exec(ctx, sql.UpdateHomeSQL,
 		req.HomeID,
 		req.GetName(),
 		req.GetDescription(),
@@ -168,26 +153,6 @@ func (h *Homes) UpdateHome(ctx context.Context, req *nyum.HomeUpdateRequest) (*n
 
 // DeleteHome deletes a home by ID
 func (h *Homes) DeleteHome(ctx context.Context, req *nyum.HomeDeleteRequest) (*nyum.HomeDeleteResponse, error) {
-	if req.HomeId == "" {
-		return nil, errors.New("homeID is required")
-	}
-
-	// First, verify that the home exists and the requesting user is the owner
-	if req.UserID == "" {
-		return nil, errors.New("userID is required")
-	}
-
-	row := h.DB.QueryRow(ctx, "SELECT owner_id FROM homes WHERE id = $1", req.HomeId)
-	var ownerID string
-	if err := row.Scan(&ownerID); err != nil {
-		return nil, fmt.Errorf("home not found: %w", err)
-	}
-
-	// Authorization check: Ensure the requesting user is the owner of the home
-	if ownerID != req.UserID {
-		return nil, fmt.Errorf("unauthorized: user does not have permission to delete this home")
-	}
-
 	// If authorization passes or isn't required, proceed with deletion
 	var id string
 	err := h.DB.QueryRow(ctx, sql.DeleteHomeSQL, req.HomeId).Scan(&id)
@@ -203,18 +168,18 @@ func (h *Homes) DeleteHome(ctx context.Context, req *nyum.HomeDeleteRequest) (*n
 }
 
 // GetAllHomesForUser retrieves all homes belonging to a specific user
-func (h *Homes) GetAllHomesForUser(ctx context.Context, userID string) ([]nyum.HomeResponse, error) {
-	if userID == "" {
-		return nil, errors.New("userID is required")
-	}
-
+func (h *Homes) GetAllHomesForUser(ctx context.Context, userID string) ([]nyum.HomeResponse, []error) {
 	rows, err := h.DB.Query(ctx, sql.GetAllHomesForUserSQL, userID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get homes for user: %w", err)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, []error{fmt.Errorf("failed to get homes for user: %w", err)}
 	}
 	defer rows.Close()
 
 	homes := []nyum.HomeResponse{}
+	var errList []error
 	for rows.Next() {
 		var (
 			id             string
@@ -249,7 +214,7 @@ func (h *Homes) GetAllHomesForUser(ctx context.Context, userID string) ([]nyum.H
 			&createdAt,
 			&updatedAt,
 		); err != nil {
-			return nil, fmt.Errorf("failed to scan home row: %w", err)
+			errList = append(errList, fmt.Errorf("failed to scan home row: %w", err))
 		}
 
 		homes = append(homes, nyum.HomeResponse{
@@ -272,9 +237,5 @@ func (h *Homes) GetAllHomesForUser(ctx context.Context, userID string) ([]nyum.H
 		})
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating over homes: %w", err)
-	}
-
-	return homes, nil
+	return homes, errList
 }
