@@ -16,7 +16,7 @@ var (
 	UPDATE users
 	SET name = $2, 
 	email = $3,
-	password_hash = coalesce($4, password_hash),
+	password_hash = coalesce($4, password_hash)
 	WHERE id = $1
 	RETURNING id;
 `

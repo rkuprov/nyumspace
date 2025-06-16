@@ -17,7 +17,15 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var ErrNotFound = errors.New("not found")
+const (
+	MsgSuccessfulRegistration = "User registered successfully"
+	MsgSuccessfulUpdate       = "User updated successfully"
+	MsgSuccessfulDeletion     = "User deleted successfully"
+)
+
+var (
+	ErrNotFound = errors.New("not found")
+)
 
 type Users struct {
 	DB *pgxpool.Pool
@@ -45,7 +53,7 @@ func (u *Users) RegisterUser(ctx context.Context, req *nyum.UserRegistrationRequ
 	return &nyum.UserRegistrationResponse{
 		UserRegistrationResponse: nyumpb.UserRegistrationResponse{
 			UserId:  id,
-			Message: "User registered successfully",
+			Message: MsgSuccessfulRegistration,
 		},
 	}, nil
 }
@@ -81,14 +89,18 @@ func (u *Users) UpdateUser(ctx context.Context, req *nyum.UserUpdateRequest) (*n
 		}
 	}
 
-	err = u.DB.QueryRow(ctx, sql.UpdateUser, req.UserId, req.Username, req.Email, string(hashedPassword)).Scan(&id)
+	err = u.DB.QueryRow(ctx, sql.UpdateUser,
+		req.UserID,
+		req.Username,
+		req.Email,
+		string(hashedPassword)).Scan(&id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update user: %w", err)
 	}
 
 	return &nyum.UserUpdateResponse{
 		UserUpdateResponse: nyumpb.UserUpdateResponse{
-			Message: fmt.Sprintf("User with ID %s updated successfully", req.UserId),
+			Message: MsgSuccessfulUpdate,
 		},
 	}, nil
 }
@@ -105,7 +117,7 @@ func (u *Users) DeleteUser(ctx context.Context, req *nyum.UserDeleteRequest) (*n
 
 	return &nyum.UserDeleteResponse{
 		UserDeleteResponse: nyumpb.UserDeleteResponse{
-			Message: fmt.Sprintf("User with ID %s deleted successfully", req.UserId),
+			Message: MsgSuccessfulDeletion,
 		},
 	}, nil
 }
@@ -131,7 +143,6 @@ func (u *Users) LoginUser(ctx context.Context, req *nyum.UserLoginRequest) (*nyu
 	expiresAt := time.Now().Add(24 * time.Hour)
 	_, err := u.DB.Exec(ctx, sql.CreateSession, sessionToken, userID, expiresAt)
 	if err != nil {
-		log.Println(err)
 		return nil, fmt.Errorf("failed to create session: %w", err)
 	}
 
