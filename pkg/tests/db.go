@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/rkuprov/nyumspace/migrations"
 	"github.com/rkuprov/nyumspace/pkg/config"
@@ -64,7 +65,19 @@ func DBForTest(t *testing.T) *pgxpool.Pool {
 	return db
 }
 
-func RemoveDBForTest(name string) error {
+func CleanupTestDB(t *testing.T, db *pgxpool.Pool) {
+	if db == nil {
+		t.Fatal("db is nil")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	dbName := db.Config().ConnConfig.Database
+	err := removeDBForTest(ctx, dbName)
+	assert.NoError(t, err, "failed to remove test database")
+}
+
+func removeDBForTest(ctx context.Context, name string) error {
 	cfg, _ := config.NewConfig()
 
 	pool, err := pgxpool.New(context.Background(), fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
