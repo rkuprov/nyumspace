@@ -32,8 +32,24 @@ services:
       PGADMIN_DEFAULT_PASSWORD: adminpwd
     networks:
       - nyum_network
+
+  minio:
+    image: minio/minio
+    restart: always
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    networks:
+      - nyum_network
+    volumes:
+      - minio_data:/User/roman/projects/minio/data
 volumes:
   pgdata:
+  minio_data:
 
 networks:
   nyum_network:
