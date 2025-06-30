@@ -33,23 +33,22 @@ services:
     networks:
       - nyum_network
 
-  minio:
-    image: minio/minio
+  seaweedfs:
+    image: chrislusf/seaweedfs:latest
     restart: always
     ports:
-      - "9000:9000"
-      - "9001:9001"
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    command: server /data --console-address ":9001"
-    networks:
-      - nyum_network
+      - "9333:9333"  # SeaweedFS master port
+      - "8080:8080"  # SeaweedFS volume server port
+    command:
+      - server -s3 -dir="/data"
+      - volume -dir="/data" -max=5  -mserver="localhost:9333" -port=8080
     volumes:
-      - minio_data:/User/roman/projects/minio/data
+      - seaweedfs_data:/data
+    networks:
+        - nyum_network
 volumes:
   pgdata:
-  minio_data:
+  seaweedfs_data:
 
 networks:
   nyum_network:
