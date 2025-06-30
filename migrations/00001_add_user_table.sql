@@ -50,6 +50,15 @@ CREATE TABLE user_sessions
     user_id       UUID        NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     expires_at    TIMESTAMPTZ NOT NULL
 );
+
+CREATE TABLE admins
+(
+    id            UUID PRIMARY KEY,
+    name          VARCHAR(100) NOT NULL,
+    email         VARCHAR(100) UNIQUE NOT NULL,
+    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 -- +goose StatementEnd
 
 -- +goose Down
