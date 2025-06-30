@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/sql"
 	"github.com/rkuprov/nyumspace/pkg/daemon"
@@ -127,4 +128,43 @@ func (a *Admin) DeleteHome(ctx context.Context, req *nyum.HomeDeleteRequest) (*n
 			Message: fmt.Sprintf("Home with ID %s deleted successfully", req.HomeId),
 		},
 	}, nil
+}
+
+// GetHome retrieves a home by ID
+func (a *Admin) GetHome(ctx context.Context, req *nyum.HomeRequest) (*nyum.HomeResponse, error) {
+	if req.HomeId == "" {
+		return nil, errors.New("homeID is required")
+	}
+
+	row := a.DB.QueryRow(ctx, sql.GetHomeSQL, req.HomeId)
+
+	var home nyum.HomeResponse
+	var createdAt, updatedAt time.Time
+
+	if err := row.Scan(
+		&home.HomeId,
+		&home.OwnerId,
+		&home.Name,
+		&home.StreetAddress_1,
+		&home.StreetAddress_2,
+		&home.City,
+		&home.State,
+		&home.ZipCode,
+		&home.Country,
+		&home.Description,
+		&home.Tags,
+		&home.ImageUrl,
+		&createdAt,
+		&updatedAt,
+	); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, fmt.Errorf("home not found: %w", err)
+		}
+		return nil, fmt.Errorf("failed to get home: %w", err)
+	}
+
+	home.CreatedAt = createdAt.Format(time.RFC3339)
+	home.UpdatedAt = updatedAt.Format(time.RFC3339)
+
+	return &home, nil
 }

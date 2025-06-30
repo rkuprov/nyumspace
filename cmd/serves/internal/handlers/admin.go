@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/jackc/pgx/v5"
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/admin"
 	"github.com/rkuprov/nyumspace/pkg/gen/nyumpb"
 	"github.com/rkuprov/nyumspace/pkg/nyum"
@@ -77,6 +78,33 @@ func AdminDeleteHome(a *admin.Admin) func(w http.ResponseWriter, r *http.Request
 		})
 		if err != nil {
 			rest.ErrInternal(w, fmt.Errorf("failed to delete home: %w", err))
+			return
+		}
+
+		rest.OK(w, resp)
+	}
+}
+
+// AdminGetHome creates a handler for retrieving a home by ID
+func AdminGetHome(a *admin.Admin) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		homeID := chi.URLParam(r, "home-id")
+		if homeID == "" {
+			rest.ErrValidation(w, errors.New("homeID is required"))
+			return
+		}
+
+		resp, err := a.GetHome(r.Context(), &nyum.HomeRequest{
+			HomeRequest: nyumpb.HomeRequest{
+				HomeId: homeID,
+			},
+		})
+		if err != nil {
+			if errors.Is(err, pgx.ErrNoRows) {
+				rest.ErrNotFound(w, fmt.Errorf("home not found"))
+				return
+			}
+			rest.ErrInternal(w, fmt.Errorf("failed to get home: %w", err))
 			return
 		}
 
