@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rkuprov/nyumspace/pkg/daemon"
+	"github.com/rkuprov/nyumspace/pkg/rest"
 )
 
 const (
@@ -48,6 +49,44 @@ func (m *Middleware) Session(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+// IsAdmin middleware ensures that the user is an admin
+func (m *Middleware) IsAdmin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userID := r.Header.Get(UserIDHeader)
+		if userID == "" {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		err := checkAdmin(r.Context(), m.d.DB, userID)
+		switch {
+		case err == nil:
+		case err.Error() == "user not found":
+			rest.ErrUnauthorized(w, err)
+			return
+		default:
+			rest.ErrInternal(w, err)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func checkAdmin(ctx context.Context, db *pgxpool.Pool, userID string) error {
+	var isAdmin bool
+	err := db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM admins WHERE id = $1)`, userID).Scan(&isAdmin)
+
+	switch {
+	case err == nil:
+		return nil
+	case errors.Is(err, pgx.ErrNoRows):
+		return errors.New("user not found")
+	default:
+		return err
+	}
 }
 
 func checkToken(ctx context.Context, db *pgxpool.Pool, token string) (string, bool, error) {

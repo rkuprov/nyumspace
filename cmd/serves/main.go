@@ -46,6 +46,7 @@ func setupRoutes(d daemon.Daemon) {
 	a := admin.NewAdmin(d)
 	d.Router.Route("/admin", func(r chi.Router) {
 		r.Use(m.Session)
+		r.Use(m.IsAdmin)
 		r.Get("/users", handlers.GetAllUsers(&a))                   // Get all users
 		r.Delete("/{userID}", handlers.AdminDeleteUser(&a))         // Delete user
 		r.Get("/{userID}", handlers.AdminGetUser(&a))               // Get user by ID
