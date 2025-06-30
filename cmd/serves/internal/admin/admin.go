@@ -217,3 +217,22 @@ func (a *Admin) GetHomesForUser(ctx context.Context, req *nyum.UserHomesRequest)
 
 	return homes, nil
 }
+
+// GetUser retrieves a user by ID
+func (a *Admin) GetUser(ctx context.Context, req *nyum.UserRequest) (*nyum.UserResponse, error) {
+	if req.UserId == "" {
+		return nil, errors.New("userID is required")
+	}
+
+	row := a.DB.QueryRow(ctx, sql.GetUser, req.UserId)
+
+	var user nyum.UserResponse
+	if err := row.Scan(&user.UserId, &user.Username, &user.Email); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to get user: %w", err)
+	}
+
+	return &user, nil
+}

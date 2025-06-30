@@ -46,10 +46,14 @@ func setupRoutes(d daemon.Daemon) {
 	a := admin.NewAdmin(d)
 	d.Router.Route("/admin", func(r chi.Router) {
 		r.Use(m.Session)
-		r.Get("/users", handlers.GetAllUsers(&a))           // Get all users
-		r.Get("/homes", handlers.GetAllHomes(&a))           // Get all homes
-		r.Delete("/{userID}", handlers.AdminDeleteUser(&a)) // Delete user
-		r.Get("/{userID}", handlers.AdminDeleteHome(&a))    // Get user by ID
+		r.Get("/users", handlers.GetAllUsers(&a))                   // Get all users
+		r.Delete("/{userID}", handlers.AdminDeleteUser(&a))         // Delete user
+		r.Get("/{userID}", handlers.AdminGetUser(&a))               // Get user by ID
+		r.Get("/{userID}/homes", handlers.AdminGetHomesForUser(&a)) // Get homes by user ID
+
+		r.Get("/homes", handlers.GetAllHomes(&a))                 // Get all homes
+		r.Get("/homes/{homeID}", handlers.AdminGetHome(&a))       // Get home by ID
+		r.Delete("/homes/{homeID}", handlers.AdminDeleteHome(&a)) // Delete home
 	})
 
 	// User routes

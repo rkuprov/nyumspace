@@ -132,3 +132,30 @@ func AdminGetHomesForUser(a *admin.Admin) func(w http.ResponseWriter, r *http.Re
 		rest.OK(w, resp...)
 	}
 }
+
+// AdminGetUser creates a handler for retrieving a user by ID
+func AdminGetUser(a *admin.Admin) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := chi.URLParam(r, "userID")
+		if userID == "" {
+			rest.ErrValidation(w, errors.New("userID is required"))
+			return
+		}
+
+		resp, err := a.GetUser(r.Context(), &nyum.UserRequest{
+			UserRequest: nyumpb.UserRequest{
+				UserId: userID,
+			},
+		})
+		if err != nil {
+			rest.ErrInternal(w, fmt.Errorf("failed to get user: %w", err))
+			return
+		}
+		if resp == nil {
+			rest.NotFound(w, fmt.Sprintf("user %s not found", userID))
+			return
+		}
+
+		rest.OK(w, resp)
+	}
+}

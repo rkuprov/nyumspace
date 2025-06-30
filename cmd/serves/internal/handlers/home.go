@@ -223,7 +223,9 @@ func GetAllHomesForUser(h *homes.Homes) func(w http.ResponseWriter, r *http.Requ
 			return
 		}
 
-		resp, errs := h.GetAllHomesForUser(r.Context(), userID)
+		resp, errs := h.GetAllHomesForUser(r.Context(), nyum.UserHomesRequest{
+			UserId: userID,
+		})
 		if len(errs) != 0 {
 			errMsgs := make([]string, len(errs))
 			for _, err := range errs {
