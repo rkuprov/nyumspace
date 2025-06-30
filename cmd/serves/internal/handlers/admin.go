@@ -111,3 +111,24 @@ func AdminGetHome(a *admin.Admin) func(w http.ResponseWriter, r *http.Request) {
 		rest.OK(w, resp)
 	}
 }
+
+// AdminGetHomesForUser creates a handler for retrieving all homes for a specific user
+func AdminGetHomesForUser(a *admin.Admin) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := chi.URLParam(r, "user-id")
+		if userID == "" {
+			rest.ErrValidation(w, errors.New("userID is required"))
+			return
+		}
+
+		resp, err := a.GetHomesForUser(r.Context(), &nyum.UserHomesRequest{
+			UserId: userID,
+		})
+		if err != nil {
+			rest.ErrInternal(w, fmt.Errorf("failed to get homes for user: %w", err))
+			return
+		}
+
+		rest.OK(w, resp...)
+	}
+}

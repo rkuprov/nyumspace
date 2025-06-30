@@ -168,8 +168,8 @@ func (h *Homes) DeleteHome(ctx context.Context, req *nyum.HomeDeleteRequest) (*n
 }
 
 // GetAllHomesForUser retrieves all homes belonging to a specific user
-func (h *Homes) GetAllHomesForUser(ctx context.Context, userID string) ([]nyum.HomeResponse, []error) {
-	rows, err := h.DB.Query(ctx, sql.GetAllHomesForUserSQL, userID)
+func (h *Homes) GetAllHomesForUser(ctx context.Context, req nyum.UserHomesRequest) ([]nyum.HomeResponse, []error) {
+	rows, err := h.DB.Query(ctx, sql.GetAllHomesForUserSQL, req.UserId)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil

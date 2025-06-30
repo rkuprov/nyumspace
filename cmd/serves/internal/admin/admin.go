@@ -168,3 +168,52 @@ func (a *Admin) GetHome(ctx context.Context, req *nyum.HomeRequest) (*nyum.HomeR
 
 	return &home, nil
 }
+
+// GetHomesForUser retrieves all homes for a specific user
+func (a *Admin) GetHomesForUser(ctx context.Context, req *nyum.UserHomesRequest) ([]nyum.HomeResponse, error) {
+	if req.UserId == "" {
+		return nil, errors.New("userID is required")
+	}
+
+	rows, err := a.DB.Query(ctx, sql.GetAllHomesForUserSQL, req.UserId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get homes for user: %w", err)
+	}
+	defer rows.Close()
+
+	homes := []nyum.HomeResponse{}
+	for rows.Next() {
+		var home nyum.HomeResponse
+		var createdAt, updatedAt time.Time
+
+		if err := rows.Scan(
+			&home.HomeId,
+			&home.OwnerId,
+			&home.Name,
+			&home.StreetAddress_1,
+			&home.StreetAddress_2,
+			&home.City,
+			&home.State,
+			&home.ZipCode,
+			&home.Country,
+			&home.Description,
+			&home.Tags,
+			&home.ImageUrl,
+			&createdAt,
+			&updatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan home row: %w", err)
+		}
+
+		home.CreatedAt = createdAt.Format(time.RFC3339)
+		home.UpdatedAt = updatedAt.Format(time.RFC3339)
+
+		homes = append(homes, home)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating over homes: %w", err)
+	}
+
+	return homes, nil
+}

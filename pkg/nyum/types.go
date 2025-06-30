@@ -88,3 +88,7 @@ type HomeDeleteRequest struct {
 type HomeDeleteResponse struct {
 	nyumpb.HomeDeleteResponse
 }
+
+type UserHomesRequest struct {
+	UserId string
+}
