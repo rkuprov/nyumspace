@@ -6,6 +6,9 @@ var (
 	VALUES ($1, $2, $3, $4)
 	RETURNING id;
 `
+	CheckEmailExists = `
+	SELECT EXISTS(SELECT 1 FROM users WHERE email = $1);
+`
 	GetUser = `
 	SELECT id, name, email FROM users WHERE id = $1;
 `

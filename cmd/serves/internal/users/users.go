@@ -21,6 +21,7 @@ const (
 	MsgSuccessfulRegistration = "User registered successfully"
 	MsgSuccessfulUpdate       = "User updated successfully"
 	MsgSuccessfulDeletion     = "User deleted successfully"
+	MsgUserAlreadyExists      = "User already exists"
 )
 
 var (
@@ -38,16 +39,32 @@ func NewUsers(d *daemon.Daemon) *Users {
 }
 
 func (u *Users) RegisterUser(ctx context.Context, req *nyum.UserRegistrationRequest) (*nyum.UserRegistrationResponse, error) {
+	// Check if email already exists
+	exists, err := u.checkEmailExists(ctx, req.Email)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check if email exists: %w", err)
+	}
+	if exists {
+		return &nyum.UserRegistrationResponse{
+			UserRegistrationResponse: nyumpb.UserRegistrationResponse{
+				Message: MsgUserAlreadyExists,
+			},
+		}, fmt.Errorf("email %s is already registered", req.Email)
+	}
+
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
 	}
 
 	id := uuid.NewString()
-	row := u.DB.QueryRow(ctx, sql.RegisterUser, id, req.Username, req.Email, string(hash))
-	// todo: implement response for failed registration due to duplicate email or username
-	if err = row.Scan(&id); err != nil {
+	var registeredID string
+	err = u.DB.QueryRow(ctx, sql.RegisterUser, id, req.Username, req.Email, string(hash)).Scan(&registeredID)
+	if err != nil {
 		return nil, err
+	}
+	if registeredID != id {
+		return nil, fmt.Errorf("user registration failed, expected ID %s but got %s", id, registeredID)
 	}
 
 	return &nyum.UserRegistrationResponse{
@@ -56,6 +73,19 @@ func (u *Users) RegisterUser(ctx context.Context, req *nyum.UserRegistrationRequ
 			Message: MsgSuccessfulRegistration,
 		},
 	}, nil
+}
+
+func (u *Users) checkEmailExists(ctx context.Context, email string) (bool, error) {
+	var exists bool
+	err := u.DB.QueryRow(ctx, sql.CheckEmailExists, email).Scan(&exists)
+	switch {
+	case err == nil:
+		return true, nil
+	case errors.Is(err, pgx.ErrNoRows):
+		return false, nil
+	default:
+		return false, fmt.Errorf("failed to check if email exists: %w", err)
+	}
 }
 
 // GetUser retrieves a user by their ID. User ID is required and must be provided.

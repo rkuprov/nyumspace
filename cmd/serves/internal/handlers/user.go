@@ -38,8 +38,13 @@ func RegisterUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 				Email:    req.Email,
 			},
 		})
-		if err != nil {
+		switch {
+		case err == nil:
+		case resp == nil:
 			rest.ErrInternal(w, fmt.Errorf("failed to register user: %w", err))
+			return
+		default:
+			rest.ErrBadRequest(w, err)
 			return
 		}
 
