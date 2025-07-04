@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/users"
 	"github.com/rkuprov/nyumspace/pkg/auth"
 	"github.com/rkuprov/nyumspace/pkg/gen/nyumpb"
@@ -65,12 +64,7 @@ func RegisterUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 // GetUser creates a handler for retrieving a user by ID
 func GetUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userID := chi.URLParam(r, "userID")
-		if userID == "" {
-			rest.ErrValidation(w, errors.New("userID is required"))
-			return
-		}
-
+		userID := r.Header.Get(auth.UserIDHeader)
 		resp, err := u.GetUser(r.Context(), &nyum.UserRequest{
 			UserRequest: nyumpb.UserRequest{
 				UserId: userID,
@@ -93,25 +87,12 @@ func GetUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 // UpdateUser creates a handler for updating a user
 func UpdateUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userID := chi.URLParam(r, "user-id")
-		if userID == "" {
-			rest.ErrValidation(w, errors.New("userID is required"))
-			return
-		}
-
+		userID := r.Header.Get(auth.UserIDHeader)
 		req, err := rest.ExtractPayload[nyumpb.UserUpdateRequest](r)
 		if err != nil {
 			rest.ErrBadRequest(w, err)
 			return
 		}
-
-		sessionUser := r.Header.Get(auth.UserIDHeader)
-		if sessionUser != userID {
-			rest.ErrUnauthorized(w, errors.New("user unauthorized to update this profile"))
-			return
-		}
-
-		// todo: add pw validating logic
 
 		resp, err := u.UpdateUser(r.Context(), &nyum.UserUpdateRequest{
 			UserID: userID,
@@ -132,16 +113,7 @@ func UpdateUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 // DeleteUser creates a handler for deleting a user
 func DeleteUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userID := chi.URLParam(r, "user-id")
-		if userID == "" {
-			rest.ErrValidation(w, errors.New("userID is required"))
-			return
-		}
-		sessionUser := r.Header.Get(auth.UserIDHeader)
-		if sessionUser != userID {
-			rest.ErrUnauthorized(w, errors.New("user unauthorized to delete this profile"))
-			return
-		}
+		userID := r.Header.Get(auth.UserIDHeader)
 
 		resp, err := u.DeleteUser(r.Context(), &nyum.UserDeleteRequest{
 			UserDeleteRequest: nyumpb.UserDeleteRequest{

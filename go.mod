@@ -4,12 +4,14 @@ go 1.24.2
 
 require (
 	connectrpc.com/connect v1.18.1
-	github.com/go-chi/chi/v5 v5.2.1
+	github.com/aws/aws-sdk-go v1.55.7
+	github.com/go-chi/chi/v5 v5.2.2
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.4
 	github.com/joho/godotenv v1.5.1
 	github.com/pressly/goose/v3 v3.24.3
 	github.com/riverqueue/river v0.22.0
+	github.com/rkuprov/checkpoint v0.0.0-20250703150857-0317670319c0
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/crypto v0.38.0
 	google.golang.org/protobuf v1.36.6

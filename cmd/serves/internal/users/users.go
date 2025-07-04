@@ -80,7 +80,7 @@ func (u *Users) checkEmailExists(ctx context.Context, email string) (bool, error
 	err := u.DB.QueryRow(ctx, sql.CheckEmailExists, email).Scan(&exists)
 	switch {
 	case err == nil:
-		return true, nil
+		return exists, nil
 	case errors.Is(err, pgx.ErrNoRows):
 		return false, nil
 	default:
@@ -94,7 +94,7 @@ func (u *Users) GetUser(ctx context.Context, req *nyum.UserRequest) (*nyum.UserR
 	var id, name, email string
 	if err := row.Scan(&id, &name, &email); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, ErrNotFound
+			return nil, nil
 		}
 		return nil, err
 	}

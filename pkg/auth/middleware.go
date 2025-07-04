@@ -27,7 +27,7 @@ func NewMiddleware(d *daemon.Daemon) *Middleware {
 	}
 }
 
-func (m *Middleware) Session(next http.Handler) http.Handler {
+func (m *Middleware) AuthorizeSession(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("Authorization")
 		if token == "" {
@@ -45,7 +45,7 @@ func (m *Middleware) Session(next http.Handler) http.Handler {
 			return
 		}
 
-		r.Header.Add("NYUM-User-ID", userID)
+		r.Header.Add(UserIDHeader, userID)
 
 		next.ServeHTTP(w, r)
 	})
