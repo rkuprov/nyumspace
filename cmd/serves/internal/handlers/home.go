@@ -58,7 +58,7 @@ func CreateHome(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
 // GetHome creates a handler for retrieving a home by ID
 func GetHome(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		homeID := chi.URLParam(r, "homeID")
+		homeID := chi.URLParam(r, "home-id")
 		if homeID == "" {
 			rest.ErrValidation(w, errors.New("homeID is required"))
 			return
@@ -164,9 +164,9 @@ func UpdateHome(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
 // DeleteHome creates a handler for deleting a home
 func DeleteHome(h *homes.Homes) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		homeID := chi.URLParam(r, "homeID")
+		homeID := chi.URLParam(r, "home-id")
 		if homeID == "" {
-			rest.ErrValidation(w, errors.New("homeID is required"))
+			rest.ErrValidation(w, errors.New("home ID is required"))
 			return
 		}
 
@@ -239,6 +239,6 @@ func GetAllHomesForUser(h *homes.Homes) func(w http.ResponseWriter, r *http.Requ
 			return
 		}
 
-		rest.OK(w, resp)
+		rest.OK(w, resp...)
 	}
 }

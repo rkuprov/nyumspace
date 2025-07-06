@@ -181,6 +181,7 @@ func (h *Homes) GetAllHomesForUser(ctx context.Context, req nyum.UserHomesReques
 	homes := []nyum.HomeResponse{}
 	var errList []error
 	for rows.Next() {
+		// todo: rework to use a struct for scanning
 		var (
 			id             string
 			ownerID        string
