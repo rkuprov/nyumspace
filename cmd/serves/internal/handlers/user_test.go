@@ -28,20 +28,16 @@ func TestUserEndpoints(t *testing.T) {
 	d := daemon.Daemon{DB: db}
 	u := users.NewUsers(&d)
 
-	checkFunc := check.NewChecker(chi.NewRouter())
-
+	testConfig := check.Init(chi.NewRouter())
+	testConfig.RouteFunc = RegisterUser(u)
+	testConfig.Path = "/register"
+	testConfig.Body = `{
+	"username": "testuser",
+	"email": "testuser@nyum.space",
+	"password": "testpassword"
+	}`
 	// Create a test user
-	resp, err := checkFunc(
-		ctx,
-		http.HandlerFunc(RegisterUser(u)),
-		check.WithURLPath("/register"),
-		check.WithURLPattern("/register"),
-		check.WithBody(`{
-			"username": "testuser2", 
-			"email": "testuser@nyum.space", 
-			"password": "testpassword"}`,
-		),
-	)
+	resp, err := testConfig.Run(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
 	assert.NotEqual(t, resp.Headers[auth.AuthorizationHeader], "")
@@ -52,42 +48,34 @@ func TestUserEndpoints(t *testing.T) {
 	userID := userResp.Data[0].UserId
 
 	// Test login with the created user
-	resp, err = checkFunc(
-		ctx,
-		http.HandlerFunc(LoginUser(u)),
-		check.WithBody(
-			`{
+	testConfig.Path = "/portal/login"
+	testConfig.Body = `{
 				"email": "testuser@nyum.space",
 				"password": "testpassword"
-			}`,
-		),
-		check.WithURLPath("/portal/login"),
-		check.WithURLPattern("/portal/login"),
-	)
+			}`
+	testConfig.Path = "/portal/login"
+
+	testConfig.RouteFunc = LoginUser(u)
+	resp, err = testConfig.Run(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	assert.NotEqual(t, resp.Headers[auth.AuthorizationHeader], "")
 
-	sessionToken := resp.Headers[auth.AuthorizationHeader]
-
 	m := auth.NewMiddleware(&d)
-	resp, err = checkFunc(
-		ctx,
-		http.HandlerFunc(GetUser(u)),
-		check.WithMiddlewares(m.AuthorizeSession),
-		check.WithURLPath("/api/portal"),
-		check.WithURLPattern("/api/portal"),
-		check.WithHeaders(
-			check.Header(auth.AuthorizationHeader, sessionToken),
-		),
-	)
+	sessionToken := resp.Headers[auth.AuthorizationHeader]
+	testConfig.WithMiddlewares(m.AuthorizeSession)
+	testConfig.Path = "/portal/portal"
+	testConfig.WithHeaders(check.Header(auth.AuthorizationHeader, sessionToken))
+
+	testConfig.RouteFunc = GetUser(u)
+	resp, err = testConfig.Run(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	assert.JSONEq(t,
 		fmt.Sprintf(`{
 				"data":[
 					{"user_id":"%s",
-	 				 "username":"testuser2",
+	 				 "username":"testuser",
  	 				 "email":"testuser@nyum.space"}
 						],
 				"message":"OK"
@@ -103,17 +91,12 @@ func TestUserEndpoints(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	resp, err = checkFunc(
-		ctx,
-		http.HandlerFunc(UpdateUser(u)),
-		check.WithMiddlewares(m.AuthorizeSession),
-		check.WithURLPath("/api/portal"),
-		check.WithURLPattern("/api/portal"),
-		check.WithHeaders(
-			check.Header(auth.AuthorizationHeader, sessionToken),
-		),
-		check.WithBody(string(update)),
-	)
+
+	testConfig.RouteFunc = UpdateUser(u)
+	testConfig.Path = "/portal/portal"
+	testConfig.WithHeaders(check.Header(auth.AuthorizationHeader, sessionToken))
+	testConfig.Body = string(update)
+	resp, err = testConfig.Run(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -126,18 +109,13 @@ func TestUserEndpoints(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	assert.Equal(t, got.Email, "updated@nyum.space")
 
-	resp, err = checkFunc(
-		ctx,
-		http.HandlerFunc(DeleteUser(u)),
-		check.WithMiddlewares(
-			m.AuthorizeSession,
-		),
-		check.WithURLPath("/api/portal"),
-		check.WithURLPattern("/api/portal"),
-		check.WithHeaders(
-			check.Header(auth.AuthorizationHeader, sessionToken),
-		),
-	)
+	testConfig.Path = "/portal/portal"
+	testConfig.Body = `{}`
+	testConfig.RouteFunc = DeleteUser(u)
+	testConfig.WithHeaders(check.Header(auth.AuthorizationHeader, sessionToken))
+	testConfig.WithMiddlewares(m.AuthorizeSession)
+	resp, err = testConfig.Run(ctx)
+
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 

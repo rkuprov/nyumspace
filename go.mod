@@ -1,6 +1,6 @@
 module github.com/rkuprov/nyumspace
 
-go 1.24.2
+go 1.24.3
 
 require (
 	connectrpc.com/connect v1.18.1
@@ -11,7 +11,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/pressly/goose/v3 v3.24.3
 	github.com/riverqueue/river v0.22.0
-	github.com/rkuprov/checkpoint v0.0.0-20250703150857-0317670319c0
+	github.com/rkuprov/checkpoint v0.0.0-20250705210144-49d30bcba93d
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/crypto v0.38.0
 	google.golang.org/protobuf v1.36.6
@@ -20,9 +20,11 @@ require (
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
+	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/mfridman/interpolate v0.0.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/riverqueue/river/riverdriver v0.22.0 // indirect
