@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -101,7 +102,7 @@ func AdminGetHome(a *admin.Admin) func(w http.ResponseWriter, r *http.Request) {
 		})
 		if err != nil {
 			if errors.Is(err, pgx.ErrNoRows) {
-				rest.ErrNotFound(w, fmt.Errorf("home not found"))
+				rest.NotFound(w, fmt.Sprintf("home not found: %s", homeID))
 				return
 			}
 			rest.ErrInternal(w, fmt.Errorf("failed to get home: %w", err))
@@ -125,6 +126,7 @@ func AdminGetHomesForUser(a *admin.Admin) func(w http.ResponseWriter, r *http.Re
 			UserId: userID,
 		})
 		if err != nil {
+			log.Println(err)
 			rest.ErrInternal(w, fmt.Errorf("failed to get homes for user: %w", err))
 			return
 		}

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/sql"
 	"github.com/rkuprov/nyumspace/pkg/daemon"
@@ -60,6 +61,7 @@ func (a *Admin) GetAllHomes(ctx context.Context) ([]nyum.HomeResponse, error) {
 	for rows.Next() {
 		var home nyum.HomeResponse
 		var createdAt, updatedAt time.Time
+		var description, imageURL pgtype.Text
 
 		if err := rows.Scan(
 			&home.HomeId,
@@ -71,9 +73,9 @@ func (a *Admin) GetAllHomes(ctx context.Context) ([]nyum.HomeResponse, error) {
 			&home.State,
 			&home.ZipCode,
 			&home.Country,
-			&home.Description,
+			&description,
 			&home.Tags,
-			&home.ImageUrl,
+			&imageURL,
 			&createdAt,
 			&updatedAt,
 		); err != nil {
@@ -83,6 +85,8 @@ func (a *Admin) GetAllHomes(ctx context.Context) ([]nyum.HomeResponse, error) {
 		home.CreatedAt = createdAt.Format(time.RFC3339)
 		home.UpdatedAt = updatedAt.Format(time.RFC3339)
 
+		home.Description = description.String
+		home.ImageUrl = imageURL.String
 		homes = append(homes, home)
 	}
 

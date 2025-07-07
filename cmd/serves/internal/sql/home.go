@@ -7,7 +7,7 @@ const (
 		RETURNING id;
 	`
 	GetHomeSQL = `
-		SELECT id, owner_id, name, street_address_1, street_address_2, city, state, zip_code, country, description, tags, image, created_at, updated_at
+		SELECT id, owner_id, name, street_address_1, street_address_2, city, state, zip_code, country, coalesce(description, ''), tags, coalesce(image, ''), created_at, updated_at
 		FROM homes WHERE id = $1;
 	`
 	GetAllHomesSQL = `
@@ -35,7 +35,7 @@ const (
 		RETURNING id;
 	`
 	GetAllHomesForUserSQL = `
-		SELECT id, owner_id, name, street_address_1, street_address_2, city, state, zip_code, country, description, tags, image, created_at, updated_at
+		SELECT id, owner_id, name, street_address_1, street_address_2, city, state, zip_code, country, coalesce(description, ''), tags, coalesce(image, ''), created_at, updated_at
 		FROM homes WHERE owner_id = $1;
 	`
 )
