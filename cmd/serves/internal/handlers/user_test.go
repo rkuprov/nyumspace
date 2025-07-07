@@ -63,7 +63,7 @@ func TestUserEndpoints(t *testing.T) {
 
 	m := auth.NewMiddleware(&d)
 	sessionToken := resp.Headers[auth.AuthorizationHeader]
-	testConfig.WithMiddlewares(m.AuthorizeSession)
+	testConfig.WithMiddlewares(m.Session)
 	testConfig.Path = "/portal/portal"
 	testConfig.WithHeaders(check.Header(auth.AuthorizationHeader, sessionToken))
 
@@ -113,7 +113,7 @@ func TestUserEndpoints(t *testing.T) {
 	testConfig.Body = `{}`
 	testConfig.RouteFunc = DeleteUser(u)
 	testConfig.WithHeaders(check.Header(auth.AuthorizationHeader, sessionToken))
-	testConfig.WithMiddlewares(m.AuthorizeSession)
+	testConfig.WithMiddlewares(m.Session)
 	resp, err = testConfig.Run(ctx)
 
 	assert.NoError(t, err)

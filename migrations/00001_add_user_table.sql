@@ -36,35 +36,27 @@ CREATE INDEX index_tags ON homes USING GIN (tags);
 
 CREATE TABLE sessions
 (
-    id            UUID PRIMARY KEY,
-    user_id       UUID                NOT NULL,
-    session_token VARCHAR(255) UNIQUE NOT NULL,
-    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users (id)
-);
-
-CREATE TABLE user_sessions
-(
     session_token TEXT PRIMARY KEY,
-    user_id       UUID        NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-    expires_at    TIMESTAMPTZ NOT NULL
+    user_id       UUID        not null,
+    expires_at    TIMESTAMPTZ NOT NULL,
+    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE admins
 (
-    id            UUID PRIMARY KEY,
-    name          VARCHAR(100) NOT NULL,
-    email         VARCHAR(100) UNIQUE NOT NULL,
-    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id         UUID PRIMARY KEY,
+    name       VARCHAR(100)        NOT NULL,
+    email      VARCHAR(100) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
 DROP TABLE homes;
-DROP TABLE sessions;
-DROP TABLE IF EXISTS user_sessions;
+DROP TABLE IF EXISTS sessions;
 DROP TABLE users;
+DROP TABLE admins;
 -- +goose StatementEnd

@@ -27,7 +27,7 @@ func NewMiddleware(d *daemon.Daemon) *Middleware {
 	}
 }
 
-func (m *Middleware) AuthorizeSession(next http.Handler) http.Handler {
+func (m *Middleware) Session(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("Authorization")
 		if token == "" {
@@ -50,9 +50,31 @@ func (m *Middleware) AuthorizeSession(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+func (m *Middleware) AllowUser(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userID := r.Header.Get(UserIDHeader)
+		if userID == "" {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
 
-// IsAdmin middleware ensures that the user is an admin
-func (m *Middleware) IsAdmin(next http.Handler) http.Handler {
+		err := checkUser(r.Context(), m.d.DB, userID)
+		switch {
+		case err == nil:
+		case err.Error() == "user not found":
+			rest.ErrUnauthorized(w, err)
+			return
+		default:
+			rest.ErrInternal(w, err)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+// AllowAdmin middleware ensures that the user is an admin
+func (m *Middleware) AllowAdmin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userID := r.Header.Get(UserIDHeader)
 		if userID == "" {
@@ -88,13 +110,24 @@ func checkAdmin(ctx context.Context, db *pgxpool.Pool, userID string) error {
 		return err
 	}
 }
+func checkUser(ctx context.Context, db *pgxpool.Pool, userID string) error {
+	var ok bool
+	err := db.QueryRow(ctx, `SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)`, userID).Scan(&ok)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return errors.New("user not found")
+		}
+		return err
+	}
+	return nil
+}
 
 func checkToken(ctx context.Context, db *pgxpool.Pool, token string) (string, bool, error) {
 	var userID string
 	var expiresAt time.Time
 	err := db.QueryRow(
 		ctx,
-		`SELECT user_id, expires_at FROM user_sessions WHERE session_token = $1`,
+		`SELECT user_id, expires_at FROM sessions WHERE session_token = $1`,
 		token).Scan(&userID, &expiresAt)
 	if err != nil {
 		if !errors.Is(err, pgx.ErrNoRows) {

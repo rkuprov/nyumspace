@@ -45,8 +45,8 @@ func setupRoutes(d daemon.Daemon) {
 	// Admin routes
 	a := admin.NewAdmin(d)
 	d.Router.Route("/admin", func(r chi.Router) {
-		r.Use(m.AuthorizeSession)
-		r.Use(m.IsAdmin)
+		r.Use(m.Session)
+		r.Use(m.AllowUser)
 		r.Get("/users", handlers.GetAllUsers(&a))                   // Get all users
 		r.Delete("/{userID}", handlers.AdminDeleteUser(&a))         // Delete user
 		r.Get("/{userID}", handlers.AdminGetUser(&a))               // Get user by ID
@@ -62,7 +62,8 @@ func setupRoutes(d daemon.Daemon) {
 	d.Router.Post("/register", handlers.RegisterUser(u)) // Register a new user
 	d.Router.Post("/login", handlers.LoginUser(u))       // Login
 	d.Router.Route("/api/portal", func(r chi.Router) {
-		r.Use(m.AuthorizeSession)
+		r.Use(m.Session)
+		r.Use(m.AllowUser)
 		r.Get("api/portal", handlers.GetUser(u))       // Get user by ID
 		r.Put("api/portal", handlers.UpdateUser(u))    // Update user
 		r.Delete("api/portal", handlers.DeleteUser(u)) // Delete user
@@ -72,7 +73,8 @@ func setupRoutes(d daemon.Daemon) {
 	// Home routes
 	h := homes.NewHomes(&d)
 	d.Router.Route("/api/portal/homes", func(r chi.Router) {
-		r.Use(m.AuthorizeSession)
+		r.Use(m.Session)
+		r.Use(m.AllowUser)
 		r.Get("/all", handlers.GetAllHomesForUser(h))  // Get all homes for the current user
 		r.Post("/", handlers.CreateHome(h))            // Create a new home
 		r.Get("/{home-id}", handlers.GetHome(h))       // Get home by ID
