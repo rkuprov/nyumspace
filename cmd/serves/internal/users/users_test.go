@@ -45,12 +45,13 @@ func TestUsers_GetUser(t *testing.T) {
 	})
 	assert.Error(t, err)
 
-	resp, err = users.GetUser(ctx, &nyum.UserRequest{
+	out, err := users.GetUser(ctx, &nyum.UserRequest{
 		nyumpb.UserRequest{
 			UserId: uuid.NewString(),
 		},
 	})
-	assert.ErrorIs(t, err, ErrNotFound)
+	assert.NoError(t, err)
+	assert.Nil(t, out, "Expected nil response for non-existent user")
 }
 
 func TestUsers_RegisterUser(t *testing.T) {
@@ -149,10 +150,11 @@ func TestUsers_DeleteUser(t *testing.T) {
 	assert.Equal(t, deleted.GetMessage(), MsgSuccessfulDeletion)
 
 	// Verify deletion
-	_, err = users.GetUser(ctx, &nyum.UserRequest{
+	out, err := users.GetUser(ctx, &nyum.UserRequest{
 		nyumpb.UserRequest{
 			UserId: userID,
 		},
 	})
-	assert.ErrorIs(t, err, ErrNotFound)
+	assert.NoError(t, err)
+	assert.Nil(t, out)
 }
