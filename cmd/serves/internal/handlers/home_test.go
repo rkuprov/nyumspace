@@ -11,6 +11,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	check "github.com/rkuprov/checkpoint"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/homes"
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/users"
 	"github.com/rkuprov/nyumspace/pkg/auth"
@@ -19,8 +22,6 @@ import (
 	"github.com/rkuprov/nyumspace/pkg/nyum"
 	"github.com/rkuprov/nyumspace/pkg/rest"
 	"github.com/rkuprov/nyumspace/pkg/tests"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestHomeEndpoints(t *testing.T) {

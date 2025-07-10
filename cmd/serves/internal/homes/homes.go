@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/sql"
 	"github.com/rkuprov/nyumspace/pkg/daemon"
 	"github.com/rkuprov/nyumspace/pkg/gen/nyumpb"
@@ -16,8 +17,7 @@ import (
 )
 
 var (
-	ErrUserUnauthorized = errors.New("unauthorized: user does not have permission to access this resource")
-	ErrNotFound         = errors.New("not found")
+	ErrNotFound = errors.New("not found")
 )
 
 type Homes struct {

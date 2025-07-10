@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/ydb-platform/ydb-go-sdk/v3/log"
 )
 
 // Result is a generic response structure for REST endpoints
@@ -18,10 +20,12 @@ type Result[T any] struct {
 func ErrNotFound(w http.ResponseWriter, err error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNotFound)
-	json.NewEncoder(w).Encode(Result[any]{
+	if encodeErr := json.NewEncoder(w).Encode(Result[any]{
 		Message: "Not Found",
 		Errors:  []string{err.Error()},
-	})
+	}); encodeErr != nil {
+		http.Error(w, encodeErr.Error(), http.StatusInternalServerError)
+	}
 }
 
 func ErrUnauthorized(w http.ResponseWriter, err error) {
@@ -34,10 +38,12 @@ func ErrUnauthorized(w http.ResponseWriter, err error) {
 func ErrValidation(w http.ResponseWriter, err error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusUnprocessableEntity) // 422
-	json.NewEncoder(w).Encode(Result[any]{
+	if encodeErr := json.NewEncoder(w).Encode(Result[any]{
 		Message: "Validation failed",
 		Errors:  []string{err.Error()},
-	})
+	}); encodeErr != nil {
+		http.Error(w, encodeErr.Error(), http.StatusInternalServerError)
+	}
 }
 
 func ErrInternal(w http.ResponseWriter, err error) {
@@ -62,9 +68,11 @@ func Created[T any](w http.ResponseWriter, data ...T) {
 func NotFound(w http.ResponseWriter, msg string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(Result[any]{
+	if err := json.NewEncoder(w).Encode(Result[any]{
 		Message: msg,
-	})
+	}); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func OK[T any](w http.ResponseWriter, data ...T) {
@@ -88,7 +96,12 @@ func sendJSON[T any](w http.ResponseWriter, status int, data T) {
 
 func ExtractPayload[T any](r *http.Request) (T, error) {
 	var payload T
-	defer r.Body.Close()
+	defer func() {
+		err := r.Body.Close()
+		if err != nil {
+			log.Error(err)
+		}
+	}()
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		return payload, fmt.Errorf("invalid JSON: %w", err)
 	}

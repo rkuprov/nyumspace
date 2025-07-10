@@ -10,11 +10,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/sql"
 	"github.com/rkuprov/nyumspace/pkg/daemon"
 	"github.com/rkuprov/nyumspace/pkg/gen/nyumpb"
 	"github.com/rkuprov/nyumspace/pkg/nyum"
-	"golang.org/x/crypto/bcrypt"
 )
 
 const (
@@ -38,7 +39,10 @@ func NewUsers(d *daemon.Daemon) *Users {
 	}
 }
 
-func (u *Users) RegisterUser(ctx context.Context, req *nyum.UserRegistrationRequest) (*nyum.UserRegistrationResponse, error) {
+func (u *Users) RegisterUser(
+	ctx context.Context,
+	req *nyum.UserRegistrationRequest,
+) (*nyum.UserRegistrationResponse, error) {
 	// Check if email already exists
 	exists, err := u.checkEmailExists(ctx, req.Email)
 	if err != nil {
