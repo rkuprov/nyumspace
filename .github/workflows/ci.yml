@@ -84,7 +84,7 @@ jobs:
         echo "Running River migrations..."
         docker run --rm --network host \
           -e DATABASE_URL="$DATABASE_URL" \
-          nyumspace:test river migrate-up --line main
+          nyumspace:test river migrate-up --line main --database-url "$DATABASE_URL"
 
     - name: Run unit tests
       run: |
