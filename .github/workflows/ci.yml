@@ -17,13 +17,22 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Build base image
+    - name: Build and cache base image
       id: base-image
       run: |
         BASE_TAG="nyumspace-base:${{ github.sha }}"
         echo "Building base image: $BASE_TAG"
         docker build -f Dockerfile.base -t $BASE_TAG .
+        # Save the image as a tar file for sharing between jobs
+        docker save $BASE_TAG | gzip > /tmp/base-image.tar.gz
         echo "tag=$BASE_TAG" >> $GITHUB_OUTPUT
+
+    - name: Upload base image artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: base-image
+        path: /tmp/base-image.tar.gz
+        retention-days: 1
 
   test:
     runs-on: ubuntu-latest
@@ -33,9 +42,9 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_PASSWORD: adminpwd
-          POSTGRES_USER: admin
-          POSTGRES_DB: nyum
+          POSTGRES_PASSWORD: ${{ secrets.PGPASSWORD }}
+          POSTGRES_USER: ${{ secrets.PGUSER }}
+          POSTGRES_DB: ${{ vars.PGDATABASE }}
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -45,30 +54,39 @@ jobs:
           - 5432:5432
 
     env:
-      DATABASE_URL: postgres://admin:adminpwd@localhost:5432/nyum?sslmode=disable
-      DB_HOST: localhost
-      DB_PORT: 5432
-      DB_USER: admin
-      DB_PASSWORD: adminpwd
-      DB_NAME: nyum
+      DATABASE_URL: postgres://${{ secrets.PGUSER }}:${{ secrets.PGPASSWORD }}@${{ vars.PGHOST }}:${{ vars.PGPORT }}/${{ vars.PGDATABASE }}?sslmode=disable
+      GOOSE_DRIVER: ${{ vars.GOOSE_DRIVER }}
+      GOOSE_DBSTRING: postgres://${{ secrets.PGUSER }}:${{ secrets.PGPASSWORD }}@${{ vars.PGHOST }}:${{ vars.PGPORT }}/${{ vars.PGDATABASE }}?sslmode=disable
+      GOOSE_MIGRATION_DIR: app/migrations
+      PGHOST: ${{ vars.PGHOST }}
+      PGPORT: ${{ vars.PGPORT }}
+      PGUSER: ${{ secrets.PGUSER }}
+      PGPASSWORD: ${{ secrets.PGPASSWORD }}
+      PGDATABASE: ${{ vars.PGDATABASE }}
+      HTTP_HOST: ${{ vars.HTTP_HOST }}
+      HTTP_PORT: ${{ vars.HTTP_PORT }}
 
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+    - name: Download base image artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: base-image
+        path: /tmp
+
+    - name: Load base image
+      run: |
+        docker load < /tmp/base-image.tar.gz
 
     - name: Build application image
       run: |
-        # First rebuild the base image for this runner
-        docker build -f Dockerfile.base -t nyumspace-base:latest .
-        
-        # Then build the application image
+        # Build the application image using the cached base image
         docker build -f Dockerfile -t nyumspace:test .
 
     - name: Wait for PostgreSQL to be ready
       run: |
-        until docker run --rm --network host postgres:15 pg_isready -h localhost -p 5432 -U admin; do
+        until docker run --rm --network host postgres:15 pg_isready -h ${{ vars.PGHOST }} -p ${{ vars.PGPORT }} -U ${{ secrets.PGUSER }}; do
           echo "Waiting for PostgreSQL..."
           sleep 2
         done
@@ -78,8 +96,10 @@ jobs:
         echo "Running Goose migrations..."
         docker run --rm --network host \
           -e DATABASE_URL="$DATABASE_URL" \
+          -e GOOSE_DRIVER="$GOOSE_DRIVER" \
+          -e GOOSE_DBSTRING="$GOOSE_DBSTRING" \
           -v ${{ github.workspace }}/migrations:/app/migrations \
-          nyumspace:test sh -c "cd migrations && goose postgres \$DATABASE_URL up && goose postgres \$DATABASE_URL status"
+          nyumspace:test sh -c "cd migrations && goose up && goose status"
         
         echo "Running River migrations..."
         docker run --rm --network host \
@@ -91,11 +111,13 @@ jobs:
         echo "Running unit tests..."
         docker run --rm --network host \
           -e DATABASE_URL="$DATABASE_URL" \
-          -e DB_HOST="$DB_HOST" \
-          -e DB_PORT="$DB_PORT" \
-          -e DB_USER="$DB_USER" \
-          -e DB_PASSWORD="$DB_PASSWORD" \
-          -e DB_NAME="$DB_NAME" \
+          -e PGHOST="${{ vars.PGHOST }}" \
+          -e PGPORT="${{ vars.PGPORT }}" \
+          -e PGUSER="${{ secrets.PGUSER }}" \
+          -e PGPASSWORD="${{ secrets.PGPASSWORD }}" \
+          -e PGDATABASE="${{ vars.PGDATABASE }}" \
+          -e HTTP_HOST="${{ vars.HTTP_HOST }}" \
+          -e HTTP_PORT="${{ vars.HTTP_PORT }}" \
           nyumspace:test go test -tags=unit -v ./...
 
     - name: Run integration tests
@@ -103,11 +125,13 @@ jobs:
         echo "Running integration tests..."
         docker run --rm --network host \
           -e DATABASE_URL="$DATABASE_URL" \
-          -e DB_HOST="$DB_HOST" \
-          -e DB_PORT="$DB_PORT" \
-          -e DB_USER="$DB_USER" \
-          -e DB_PASSWORD="$DB_PASSWORD" \
-          -e DB_NAME="$DB_NAME" \
+          -e PGHOST="${{ vars.PGHOST }}" \
+          -e PGPORT="${{ vars.PGPORT }}" \
+          -e PGUSER="${{ secrets.PGUSER }}" \
+          -e PGPASSWORD="${{ secrets.PGPASSWORD }}" \
+          -e PGDATABASE="${{ vars.PGDATABASE }}" \
+          -e HTTP_HOST="${{ vars.HTTP_HOST }}" \
+          -e HTTP_PORT="${{ vars.HTTP_PORT }}" \
           nyumspace:test go test -tags=integration -v ./...
 
     - name: Generate test coverage report
@@ -115,22 +139,26 @@ jobs:
         echo "Generating coverage report for unit tests..."
         docker run --rm --network host \
           -e DATABASE_URL="$DATABASE_URL" \
-          -e DB_HOST="$DB_HOST" \
-          -e DB_PORT="$DB_PORT" \
-          -e DB_USER="$DB_USER" \
-          -e DB_PASSWORD="$DB_PASSWORD" \
-          -e DB_NAME="$DB_NAME" \
+          -e PGHOST="${{ vars.PGHOST }}" \
+          -e PGPORT="${{ vars.PGPORT }}" \
+          -e PGUSER="${{ secrets.PGUSER }}" \
+          -e PGPASSWORD="${{ secrets.PGPASSWORD }}" \
+          -e PGDATABASE="${{ vars.PGDATABASE }}" \
+          -e HTTP_HOST="${{ vars.HTTP_HOST }}" \
+          -e HTTP_PORT="${{ vars.HTTP_PORT }}" \
           -v ${{ github.workspace }}:/workspace \
           nyumspace:test sh -c "go test -tags=unit -coverprofile=/workspace/unit-coverage.out ./..."
         
         echo "Generating coverage report for integration tests..."
         docker run --rm --network host \
           -e DATABASE_URL="$DATABASE_URL" \
-          -e DB_HOST="$DB_HOST" \
-          -e DB_PORT="$DB_PORT" \
-          -e DB_USER="$DB_USER" \
-          -e DB_PASSWORD="$DB_PASSWORD" \
-          -e DB_NAME="$DB_NAME" \
+          -e PGHOST="${{ vars.PGHOST }}" \
+          -e PGPORT="${{ vars.PGPORT }}" \
+          -e PGUSER="${{ secrets.PGUSER }}" \
+          -e PGPASSWORD="${{ secrets.PGPASSWORD }}" \
+          -e PGDATABASE="${{ vars.PGDATABASE }}" \
+          -e HTTP_HOST="${{ vars.HTTP_HOST }}" \
+          -e HTTP_PORT="${{ vars.HTTP_PORT }}" \
           -v ${{ github.workspace }}:/workspace \
           nyumspace:test sh -c "go test -tags=integration -coverprofile=/workspace/integration-coverage.out ./..."
 
@@ -147,21 +175,25 @@ jobs:
         echo "Running race condition detection on unit tests..."
         docker run --rm --network host \
           -e DATABASE_URL="$DATABASE_URL" \
-          -e DB_HOST="$DB_HOST" \
-          -e DB_PORT="$DB_PORT" \
-          -e DB_USER="$DB_USER" \
-          -e DB_PASSWORD="$DB_PASSWORD" \
-          -e DB_NAME="$DB_NAME" \
+          -e PGHOST="${{ vars.PGHOST }}" \
+          -e PGPORT="${{ vars.PGPORT }}" \
+          -e PGUSER="${{ secrets.PGUSER }}" \
+          -e PGPASSWORD="${{ secrets.PGPASSWORD }}" \
+          -e PGDATABASE="${{ vars.PGDATABASE }}" \
+          -e HTTP_HOST="${{ vars.HTTP_HOST }}" \
+          -e HTTP_PORT="${{ vars.HTTP_PORT }}" \
           nyumspace:test go test -tags=unit -race ./...
         
         echo "Running race condition detection on integration tests..."
         docker run --rm --network host \
           -e DATABASE_URL="$DATABASE_URL" \
-          -e DB_HOST="$DB_HOST" \
-          -e DB_PORT="$DB_PORT" \
-          -e DB_USER="$DB_USER" \
-          -e DB_PASSWORD="$DB_PASSWORD" \
-          -e DB_NAME="$DB_NAME" \
+          -e PGHOST="${{ vars.PGHOST }}" \
+          -e PGPORT="${{ vars.PGPORT }}" \
+          -e PGUSER="${{ secrets.PGUSER }}" \
+          -e PGPASSWORD="${{ secrets.PGPASSWORD }}" \
+          -e PGDATABASE="${{ vars.PGDATABASE }}" \
+          -e HTTP_HOST="${{ vars.HTTP_HOST }}" \
+          -e HTTP_PORT="${{ vars.HTTP_PORT }}" \
           nyumspace:test go test -tags=integration -race ./...
 
   lint:
@@ -170,15 +202,18 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+    - name: Download base image artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: base-image
+        path: /tmp
+
+    - name: Load base image
+      run: |
+        docker load < /tmp/base-image.tar.gz
 
     - name: Build application image for linting
       run: |
-        # Rebuild base image for this runner
-        docker build -f Dockerfile.base -t nyumspace-base:latest .
-        
-        # Build application image
         docker build -f Dockerfile -t nyumspace:lint .
 
     - name: Run golangci-lint in container
@@ -192,15 +227,18 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+    - name: Download base image artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: base-image
+        path: /tmp
+
+    - name: Load base image
+      run: |
+        docker load < /tmp/base-image.tar.gz
 
     - name: Build application image for security scan
       run: |
-        # Rebuild base image for this runner
-        docker build -f Dockerfile.base -t nyumspace-base:latest .
-        
-        # Build application image
         docker build -f Dockerfile -t nyumspace:security .
 
     - name: Run Gosec Security Scanner in container
