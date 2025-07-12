@@ -35,10 +35,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Create admin user
-      run: |
-        PGPASSWORD=${{ secrets.PGPASSWORD }} psql -h localhost -U ${{ secrets.PGUSER }} -d ${{ vars.PGDATABASE }} -c "CREATE USER ${{ secrets.PGUSER }} WITH PASSWORD ${{secrets.PGPASSWORD}} SUPERUSER;"
-
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
