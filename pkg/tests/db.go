@@ -35,7 +35,7 @@ func DBForTest(t *testing.T) *pgxpool.Pool {
 	defer masterDB.Close()
 
 	dbName := fmt.Sprintf("test%d", time.Now().UnixNano())
-	_, err = masterDB.Exec(ctx, fmt.Sprintf("CREATE DATABASE %s OWNER %s", dbName, cfg.PG.User))
+	_, err = masterDB.Exec(ctx, fmt.Sprintf("CREATE DATABASE %s", dbName))
 	if err != nil {
 		t.Fatalf("failed to create test database: %v", err)
 	}
