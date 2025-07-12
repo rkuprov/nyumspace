@@ -1,6 +1,7 @@
 package config
 
 import (
+	"log"
 	"os"
 	"path/filepath"
 	"slices"
@@ -26,17 +27,16 @@ type HTTPServer struct {
 }
 
 func NewConfig() (Cfg, error) {
-	wd, err := os.Getwd()
-	if err != nil {
-		return Cfg{}, err
+	switch os.Getenv("NYUMSPACE_ENV") {
+	case "local":
+		err := loadFromLocal()
+		if err != nil {
+			return Cfg{}, err
+		}
+	default:
+		log.Printf("Parsing settings from the %s environment\n", os.Getenv("NYUMSPACE_ENV"))
 	}
-	parts := strings.Split(wd, string(filepath.Separator))
-	ind := slices.Index(parts, "nyumspace")
-	parts = parts[0 : ind+1]
-	err = godotenv.Load(string(filepath.Separator) + filepath.Join(append(parts, "deployments", "env", "local.env")...))
-	if err != nil {
-		return Cfg{}, err
-	}
+
 	cfg := Cfg{
 		PG: &Postgres{
 			Host:     os.Getenv("PGHOST"),
@@ -52,4 +52,20 @@ func NewConfig() (Cfg, error) {
 	}
 
 	return cfg, nil
+}
+
+func loadFromLocal() error {
+	wd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	parts := strings.Split(wd, string(filepath.Separator))
+	ind := slices.Index(parts, "nyumspace")
+	parts = parts[0 : ind+1]
+	err = godotenv.Load(string(filepath.Separator) + filepath.Join(append(parts, "deployments", "env", "local.env")...))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
