@@ -21,6 +21,7 @@ jobs:
           POSTGRES_DB: ${{ vars.PGDATABASE }}
           POSTGRES_HOST: ${{ vars.PGHOST }}
           POSTGRES_PORT: ${{ vars.PGPORT }}
+          POSTGRES_ADMIN_USER: ${{ secrets.PGUSER }}
         # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
@@ -34,6 +35,10 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: Create admin user
+      run: |
+        PGPASSWORD=${{ secrets.PGPASSWORD }} psql -h localhost -U ${{ secrets.PGUSER }} -d ${{ vars.PGDATABASE }} -c "CREATE USER admin_user WITH PASSWORD 'admin_password' SUPERUSER;"
 
     - name: Set up Go
       uses: actions/setup-go@v4
