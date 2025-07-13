@@ -35,7 +35,7 @@ func DBForTest(t *testing.T) *pgxpool.Pool {
 	defer masterDB.Close()
 
 	dbName := fmt.Sprintf("test%d", time.Now().UnixNano())
-	_, err = masterDB.Exec(ctx, fmt.Sprintf("CREATE DATABASE %s OWNER %s", dbName, cfg.PG.User))
+	_, err = masterDB.Exec(ctx, fmt.Sprintf("CREATE DATABASE %s", dbName))
 	if err != nil {
 		t.Fatalf("failed to create test database: %v", err)
 	}
@@ -78,9 +78,12 @@ func CleanupTestDB(t *testing.T, db *pgxpool.Pool) {
 }
 
 func removeDBForTest(ctx context.Context, name string) error {
-	cfg, _ := config.NewConfig()
+	cfg, err := config.NewConfig()
+	if err != nil {
+		return fmt.Errorf("failed to load config: %v", err)
+	}
 
-	pool, err := pgxpool.New(context.Background(), fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+	pool, err := pgxpool.New(ctx, fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		cfg.PG.User,
 		cfg.PG.Password,
 		cfg.PG.Host,
@@ -93,7 +96,7 @@ func removeDBForTest(ctx context.Context, name string) error {
 	defer pool.Close()
 
 	// Terminate all connections to the database before dropping it
-	_, err = pool.Exec(context.Background(),
+	_, err = pool.Exec(ctx,
 		`SELECT pg_terminate_backend(pg_stat_activity.pid)
 		FROM pg_stat_activity
 		WHERE pg_stat_activity.datname = $1
@@ -102,7 +105,7 @@ func removeDBForTest(ctx context.Context, name string) error {
 		return fmt.Errorf("failed to terminate connections: %v", err)
 	}
 
-	_, err = pool.Exec(context.Background(), fmt.Sprintf(`drop database %s`, name))
+	_, err = pool.Exec(ctx, fmt.Sprintf(`drop database %s`, name))
 	if err != nil {
 		return err
 	}
@@ -115,6 +118,9 @@ func runMigrations(_ context.Context, db *pgxpool.Pool) error {
 	defer stdlib.UnregisterConnConfig(connStr)
 
 	sqlDB, err := sql.Open("pgx", connStr)
+	if err != nil {
+		return fmt.Errorf("failed to open SQL database: %v", err)
+	}
 
 	err = goose.SetDialect("pgx")
 	if err != nil {

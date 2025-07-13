@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
+
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/sql"
 	"github.com/rkuprov/nyumspace/pkg/daemon"
 	"github.com/rkuprov/nyumspace/pkg/gen/nyumpb"
@@ -25,21 +26,21 @@ func NewAdmin(d daemon.Daemon) Admin {
 	}
 }
 
-func (a *Admin) GetAllUsers(ctx context.Context) ([]nyum.UserResponse, error) {
+func (a *Admin) GetAllUsers(ctx context.Context) ([]*nyum.UserResponse, error) {
 	rows, err := a.DB.Query(ctx, sql.GetAllUsers)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get users: %w", err)
 	}
 	defer rows.Close()
 
-	users := []nyum.UserResponse{}
+	users := make([]*nyum.UserResponse, 0)
 	for rows.Next() {
 		var user nyum.UserResponse
 		if err := rows.Scan(&user.UserId, &user.Username, &user.Email); err != nil {
 			return nil, fmt.Errorf("failed to scan user row: %w", err)
 		}
 
-		users = append(users, user)
+		users = append(users, &user)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -50,14 +51,14 @@ func (a *Admin) GetAllUsers(ctx context.Context) ([]nyum.UserResponse, error) {
 }
 
 // GetAllHomes retrieves all homes
-func (a *Admin) GetAllHomes(ctx context.Context) ([]nyum.HomeResponse, error) {
+func (a *Admin) GetAllHomes(ctx context.Context) ([]*nyum.HomeResponse, error) {
 	rows, err := a.DB.Query(ctx, sql.GetAllHomesSQL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get homes: %w", err)
 	}
 	defer rows.Close()
 
-	homes := []nyum.HomeResponse{}
+	homes := make([]*nyum.HomeResponse, 0)
 	for rows.Next() {
 		var home nyum.HomeResponse
 		var createdAt, updatedAt time.Time
@@ -87,7 +88,7 @@ func (a *Admin) GetAllHomes(ctx context.Context) ([]nyum.HomeResponse, error) {
 
 		home.Description = description.String
 		home.ImageUrl = imageURL.String
-		homes = append(homes, home)
+		homes = append(homes, &home)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -174,7 +175,7 @@ func (a *Admin) GetHome(ctx context.Context, req *nyum.HomeRequest) (*nyum.HomeR
 }
 
 // GetHomesForUser retrieves all homes for a specific user
-func (a *Admin) GetHomesForUser(ctx context.Context, req *nyum.UserHomesRequest) ([]nyum.HomeResponse, error) {
+func (a *Admin) GetHomesForUser(ctx context.Context, req *nyum.UserHomesRequest) ([]*nyum.HomeResponse, error) {
 	if req.UserId == "" {
 		return nil, errors.New("userID is required")
 	}
@@ -185,7 +186,7 @@ func (a *Admin) GetHomesForUser(ctx context.Context, req *nyum.UserHomesRequest)
 	}
 	defer rows.Close()
 
-	homes := []nyum.HomeResponse{}
+	homes := make([]*nyum.HomeResponse, 0)
 	for rows.Next() {
 		var home nyum.HomeResponse
 		var createdAt, updatedAt time.Time
@@ -212,7 +213,7 @@ func (a *Admin) GetHomesForUser(ctx context.Context, req *nyum.UserHomesRequest)
 		home.CreatedAt = createdAt.Format(time.RFC3339)
 		home.UpdatedAt = updatedAt.Format(time.RFC3339)
 
-		homes = append(homes, home)
+		homes = append(homes, &home)
 	}
 
 	if err := rows.Err(); err != nil {

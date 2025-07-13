@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/admin"
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/handlers"
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/homes"
@@ -36,10 +37,12 @@ func setupRoutes(d daemon.Daemon) {
 	d.Router.Get("/health", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Health check request received")
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{
+		if err := json.NewEncoder(w).Encode(map[string]string{
 			"status":  "healthy",
 			"message": "Service is running",
-		})
+		}); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 	})
 
 	// Admin routes

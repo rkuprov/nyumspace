@@ -55,9 +55,9 @@ func Run(work workFunc, opts ...DaemonOpt) {
 
 	go func() {
 		defer recoverDaemonPanic(errChan)
-		err := work(ctx, d)
-		if err != nil {
-			errChan <- err
+		closeErr := work(ctx, d)
+		if closeErr != nil {
+			errChan <- closeErr
 			return
 		}
 	}()
@@ -65,14 +65,14 @@ func Run(work workFunc, opts ...DaemonOpt) {
 	select {
 	case sig := <-signalChan:
 		log.Printf("Received signal: %s, shutting down...\n", sig)
-	case err := <-errChan:
+	case err = <-errChan:
 		log.Printf("Error occurred: %v, shutting down...\n", err)
 	case <-ctx.Done():
 		log.Println("Context canceled, shutting down...")
 	}
 
 	log.Println("Gracefully shutting down...")
-	shutdownCtx, _ := context.WithTimeout(ctx, 30*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	err = d.Server.Shutdown(shutdownCtx)
 	if err != nil {
 		log.Printf("Error shutting down HTTP server: %v\n", err)
@@ -82,6 +82,8 @@ func Run(work workFunc, opts ...DaemonOpt) {
 		done()
 	}
 
+	time.Sleep(time.Second * 5)
+	cancel()
 	log.Println("Daemon stopped.")
 }
 

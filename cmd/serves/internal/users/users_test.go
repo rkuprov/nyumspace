@@ -7,11 +7,13 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/sql"
 	"github.com/rkuprov/nyumspace/pkg/gen/nyumpb"
 	"github.com/rkuprov/nyumspace/pkg/nyum"
 	"github.com/rkuprov/nyumspace/pkg/tests"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestUsers_GetUser(t *testing.T) {
@@ -25,12 +27,13 @@ func TestUsers_GetUser(t *testing.T) {
 
 	userID := uuid.NewString()
 	ctx := context.Background()
-	db.Exec(ctx, sql.RegisterUser,
+	_, err := db.Exec(ctx, sql.RegisterUser,
 		userID,
 		"testuserNAME",
 		"user@nyum.space",
 		"hashedpassword", // This should be a bcrypt hash in production
 	)
+	require.NoError(t, err)
 
 	resp, err := users.GetUser(ctx, &nyum.UserRequest{
 		nyumpb.UserRequest{
@@ -94,12 +97,13 @@ func TestUsers_UpdateUser(t *testing.T) {
 
 	userID := uuid.NewString()
 	ctx := context.Background()
-	db.Exec(ctx, sql.RegisterUser,
+	_, err := db.Exec(ctx, sql.RegisterUser,
 		userID,
 		"testuser",
 		"test@nyum.space",
 		"hashedpassword", // This should be a bcrypt hash in production
 	)
+	require.NoError(t, err)
 
 	req := &nyum.UserUpdateRequest{
 		UserID: userID,
@@ -141,6 +145,7 @@ func TestUsers_DeleteUser(t *testing.T) {
 			Password: "password123",
 		},
 	})
+	require.NoError(t, err)
 	userID := resp.GetUserId()
 	assert.NoError(t, err)
 	deleted, err := users.DeleteUser(ctx, &nyum.UserDeleteRequest{

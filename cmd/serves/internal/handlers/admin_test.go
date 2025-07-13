@@ -15,15 +15,16 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/rkuprov/checkpoint"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/ydb-platform/ydb-go-sdk/v3/log"
+
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/admin"
 	"github.com/rkuprov/nyumspace/pkg/auth"
 	"github.com/rkuprov/nyumspace/pkg/daemon"
 	"github.com/rkuprov/nyumspace/pkg/nyum"
 	"github.com/rkuprov/nyumspace/pkg/rest"
 	"github.com/rkuprov/nyumspace/pkg/tests"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"github.com/ydb-platform/ydb-go-sdk/v3/log"
 )
 
 func createAdminUser(ctx context.Context, a *admin.Admin) string {

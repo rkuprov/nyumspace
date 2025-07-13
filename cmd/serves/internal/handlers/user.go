@@ -47,7 +47,7 @@ func RegisterUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		loginReq := nyumpb.UserLoginRequest{
+		loginReq := &nyumpb.UserLoginRequest{
 			Email:    req.Email,
 			Password: req.Password,
 		}
@@ -154,13 +154,13 @@ func LoginUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		resp, err := beginSession(r.Context(), u, req, w)
+		resp, err := beginSession(r.Context(), u, &req, w)
 		if err != nil {
 			rest.ErrInternal(w, fmt.Errorf("failed to login: %w", err))
 			return
 		}
 
-		rest.OK(w, resp)
+		rest.OK(w, &resp)
 	}
 }
 
@@ -193,7 +193,12 @@ func LogoutUser(u *users.Users) func(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func beginSession(ctx context.Context, u *users.Users, req nyumpb.UserLoginRequest, w http.ResponseWriter) (nyum.UserLoginResponse, error) {
+func beginSession(
+	ctx context.Context,
+	u *users.Users,
+	req *nyumpb.UserLoginRequest,
+	w http.ResponseWriter,
+) (*nyum.UserLoginResponse, error) {
 	resp, err := u.LoginUser(ctx, &nyum.UserLoginRequest{
 		UserLoginRequest: nyumpb.UserLoginRequest{
 			Email:    req.Email,
@@ -201,10 +206,10 @@ func beginSession(ctx context.Context, u *users.Users, req nyumpb.UserLoginReque
 		},
 	})
 	if err != nil {
-		return nyum.UserLoginResponse{}, err
+		return nil, err
 	}
 
 	w.Header().Add("Authorization", resp.SessionToken)
 
-	return *resp, nil
+	return resp, nil
 }

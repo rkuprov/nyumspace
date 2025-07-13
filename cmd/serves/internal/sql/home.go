@@ -2,16 +2,66 @@ package sql
 
 const (
 	AddHomeSQL = `
-		INSERT INTO homes (id, owner_id, name, street_address_1, street_address_2, city, state, zip_code, country, description, tags, image)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+		INSERT INTO homes (
+			id, 
+			owner_id, 
+			name, 
+			street_address_1, 
+			street_address_2, 
+			city, 
+			state, 
+			zip_code, 
+			country, 
+			description, 
+			tags, 
+			image)
+		VALUES (
+			$1, 
+			$2, 
+			$3, 
+			$4, 
+			$5, 
+			$6, 
+			$7, 
+			$8, 
+			$9, 
+			$10, 
+			$11, 
+			$12)
 		RETURNING id;
 	`
 	GetHomeSQL = `
-		SELECT id, owner_id, name, street_address_1, street_address_2, city, state, zip_code, country, coalesce(description, ''), tags, coalesce(image, ''), created_at, updated_at
+		SELECT id, 
+			owner_id, 
+			name, 
+			street_address_1, 
+			street_address_2, 
+			city, 
+			state, 
+			zip_code, 
+			country, 
+			coalesce(description, ''), 
+			tags, 
+			coalesce(image, ''), 
+			created_at, 
+			updated_at
 		FROM homes WHERE id = $1;
 	`
 	GetAllHomesSQL = `
-		SELECT id, owner_id, name, street_address_1, street_address_2, city, state, zip_code, country, description, tags, image, created_at, updated_at
+		SELECT id, 
+			owner_id, 
+			name, 
+			street_address_1, 
+			street_address_2, 
+			city, 
+			state, 
+			zip_code, 
+			country, 
+			description, 
+			tags, 
+			image, 
+			created_at, 
+			updated_at
 		FROM homes;
 	`
 	UpdateHomeSQL = `
@@ -35,7 +85,20 @@ const (
 		RETURNING id;
 	`
 	GetAllHomesForUserSQL = `
-		SELECT id, owner_id, name, street_address_1, street_address_2, city, state, zip_code, country, coalesce(description, ''), tags, coalesce(image, ''), created_at, updated_at
+		SELECT id, 
+			owner_id, 
+			name, 
+			street_address_1, 
+			street_address_2, 
+			city, 
+			state, 
+			zip_code, 
+			country, 
+			coalesce(description, ''), 
+			tags, 
+			coalesce(image, ''), 
+			created_at, 
+			updated_at
 		FROM homes WHERE owner_id = $1;
 	`
 )
