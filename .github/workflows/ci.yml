@@ -24,8 +24,22 @@ jobs:
         version: latest
         args: --timeout=5m
 
-  test-and-migrate:
+  security:
     runs-on: ubuntu-latest
+    env:
+      GO111MODULE: on
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Run GoSec
+      uses: securego/gosec@master
+      with:
+        args: ./...
+
+
+  tests:
+    runs-on: ubuntu-latest
+    needs: [lint, security]
     environment: testing
 
     services:
