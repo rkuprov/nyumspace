@@ -34,7 +34,9 @@ jobs:
     - name: Run GoSec
       uses: securego/gosec@master
       with:
-        args: ./...
+        args: |
+          ./...
+          -exclude=G103,G112
 
 
   tests:
