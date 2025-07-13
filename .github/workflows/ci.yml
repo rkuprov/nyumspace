@@ -35,8 +35,9 @@ jobs:
       uses: securego/gosec@master
       with:
         args: |
-          ./...
           -exclude=G103,G112
+          -exclude-generated
+          ./...
 
 
   tests:
