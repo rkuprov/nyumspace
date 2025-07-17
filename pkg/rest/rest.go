@@ -82,6 +82,7 @@ func OK[T any](w http.ResponseWriter, data ...T) {
 	})
 }
 
+// todo: add erros here, wtf
 func Mixed[T any](w http.ResponseWriter, status int, result Result[T]) {
 	sendJSON(w, status, result)
 }
