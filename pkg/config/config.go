@@ -28,7 +28,7 @@ type HTTPServer struct {
 }
 type S3Aws struct {
 	Region          string `json:"region"`
-	Endpoint        string `json:"endpoint"`
+	BaseEndpoint    string `json:"base_endpoint"`
 	AccessKeyID     string `json:"access_key_id"`
 	SecretAccessKey string `json:"secret_access_key"`
 }
@@ -58,7 +58,7 @@ func NewConfig() (Cfg, error) {
 		},
 		S3Aws: &S3Aws{
 			Region:          os.Getenv("S3_REGION"),
-			Endpoint:        os.Getenv("S3_ENDPOINT"),
+			BaseEndpoint:    os.Getenv("S3_ENDPOINT"),
 			AccessKeyID:     os.Getenv("S3_ACCESS_KEY_ID"),
 			SecretAccessKey: os.Getenv("S3_SECRET_ACCESS_KEY"),
 		},
