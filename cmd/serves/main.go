@@ -87,9 +87,9 @@ func setupRoutes(d daemon.Daemon) {
 		r.Delete("/{home-id}", handlers.DeleteHome(h)) // Delete home
 
 		// Image upload endpoints
-		r.Post("/{home-id}/images/upload", handlers.UploadHomeImage(h))               // Direct image upload
-		r.Post("/{home-id}/images/presigned", handlers.GeneratePresignedUploadURL(h)) // Generate presigned URL
-		r.Delete("/{home-id}/images", handlers.DeleteHomeImage(h))                    // Delete image
+		//r.Post("/{home-id}/images/upload", handlers.UploadHomeImage(h))               // Direct image upload
+		//r.Post("/{home-id}/images/presigned", handlers.GeneratePresignedUploadURL(h)) // Generate presigned URL
+		//r.Delete("/{home-id}/images", handlers.DeleteHomeImage(h))                    // Delete image
 	})
 
 	// Set router to daemon
