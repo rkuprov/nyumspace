@@ -10,6 +10,10 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	extJPG = ".jpg"
+)
+
 // SupportedImageTypes contains the MIME types for supported image formats
 var SupportedImageTypes = map[string]bool{
 	"image/jpeg": true,
@@ -53,7 +57,7 @@ func getExtensionFromContentType(contentType string) string {
 		// Fallback to common extensions
 		switch contentType {
 		case "image/jpeg", "image/jpg":
-			return ".jpg"
+			return extJPG
 		case "image/png":
 			return ".png"
 		case "image/gif":
@@ -61,7 +65,7 @@ func getExtensionFromContentType(contentType string) string {
 		case "image/webp":
 			return ".webp"
 		default:
-			return ".jpg" // Default fallback
+			return extJPG // Default fallback
 		}
 	}
 	return extensions[0]
@@ -71,7 +75,7 @@ func getExtensionFromContentType(contentType string) string {
 func ExtractContentTypeFromFilename(filename string) string {
 	ext := strings.ToLower(filepath.Ext(filename))
 	switch ext {
-	case ".jpg", ".jpeg":
+	case extJPG, ".jpeg":
 		return "image/jpeg"
 	case ".png":
 		return "image/png"

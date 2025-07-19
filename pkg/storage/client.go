@@ -210,21 +210,21 @@ func (c *Client) UploadLargeFile(ctx context.Context, bucketName, key string, da
 		partData := data[offset:end]
 		currentPart := partNumber
 
-		uploadResp, err := c.client.UploadPart(ctx, &s3.UploadPartInput{
+		uploadResp, err2 := c.client.UploadPart(ctx, &s3.UploadPartInput{
 			Bucket:     aws.String(bucketName),
 			Key:        aws.String(key),
 			PartNumber: &currentPart,
 			UploadId:   uploadID,
 			Body:       bytes.NewReader(partData),
 		})
-		if err != nil {
+		if err2 != nil {
 			// Abort the multipart upload on error
 			c.client.AbortMultipartUpload(ctx, &s3.AbortMultipartUploadInput{
 				Bucket:   aws.String(bucketName),
 				Key:      aws.String(key),
 				UploadId: uploadID,
 			})
-			return fmt.Errorf("failed to upload part %d: %w", partNumber, err)
+			return fmt.Errorf("failed to upload part %d: %w", partNumber, err2)
 		}
 
 		completedParts = append(completedParts, types.CompletedPart{
