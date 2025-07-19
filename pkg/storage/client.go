@@ -58,7 +58,7 @@ func (c *Client) ListBuckets(ctx context.Context) ([]string, error) {
 		return nil, fmt.Errorf("failed to list buckets: %w", err)
 	}
 
-	var buckets []string
+	buckets := make([]string, len(result.Buckets))
 	for _, bucket := range result.Buckets {
 		buckets = append(buckets, *bucket.Name)
 	}
