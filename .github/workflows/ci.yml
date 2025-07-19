@@ -64,6 +64,17 @@ jobs:
         ports:
           # Maps tcp port 5432 on service container to the host
           - 5432:5432
+      localstack-s3:
+        image: localstack/localstack:s3-latest
+        ports:
+          - 4566:4566  # LocalStack Gateway
+        options: >-
+          --health-cmd "curl --silent --fail http://localhost:4566/_localstack/health | grep '\"s3\": \"running\"'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        volumes:
+          - /localstack:/tmp/localstack
 
     steps:
     - name: Checkout code
