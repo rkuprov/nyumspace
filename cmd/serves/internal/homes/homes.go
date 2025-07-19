@@ -23,12 +23,13 @@ var (
 
 type Homes struct {
 	DB    *pgxpool.Pool
-	Store storage.Client
+	Store *storage.Client
 }
 
 func NewHomes(d *daemon.Daemon) *Homes {
 	return &Homes{
-		DB: d.DB,
+		DB:    d.DB,
+		Store: d.Storage,
 	}
 }
 

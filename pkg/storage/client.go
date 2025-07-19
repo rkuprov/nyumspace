@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -37,7 +36,6 @@ func NewStorageClient(ctx context.Context, cfg *config.S3Aws) (*Client, error) {
 		o.UsePathStyle = true
 		o.BaseEndpoint = aws.String(cfg.BaseEndpoint)
 	})
-
 	return &Client{client: client}, nil
 }
 
@@ -134,6 +132,10 @@ func (c *Client) HeadObject(ctx context.Context, bucketName, key string) (*s3.He
 		Key:    aws.String(key),
 	})
 	if err != nil {
+		// Check if the error is a "not found" error
+		if errors.Is(err, &types.NoSuchKey{}) {
+			return nil, fmt.Errorf("object not found: %w", err)
+		}
 		return nil, fmt.Errorf("failed to head object: %w", err)
 	}
 	return result, nil
@@ -158,8 +160,7 @@ func (c *Client) CopyObject(ctx context.Context, srcBucket, srcKey, destBucket, 
 func (c *Client) ObjectExists(ctx context.Context, bucketName, key string) (bool, error) {
 	_, err := c.HeadObject(ctx, bucketName, key)
 	if err != nil {
-		// Check if it's a "not found" error
-		if strings.Contains(err.Error(), "404") || strings.Contains(err.Error(), "NoSuchKey") {
+		if errors.Is(err, &types.NoSuchKey{}) {
 			return false, nil
 		}
 		return false, fmt.Errorf("failed to check object existence: %w", err)

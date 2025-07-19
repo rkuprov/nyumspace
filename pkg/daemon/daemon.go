@@ -17,12 +17,14 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 
 	"github.com/rkuprov/nyumspace/pkg/config"
+	"github.com/rkuprov/nyumspace/pkg/storage"
 )
 
 type Daemon struct {
 	DB      *pgxpool.Pool
 	Server  *http.Server
 	Router  *chi.Mux
+	Storage *storage.Client // Assuming storage.Client is defined elsewhere
 	errChan chan error
 }
 
@@ -100,9 +102,14 @@ func newDaemon(ctx context.Context, cfg config.Cfg, opts ...DaemonOpt) (Daemon, 
 	}
 
 	// Verify the connection
-	if err := dbpool.Ping(ctx); err != nil {
+	if err = dbpool.Ping(ctx); err != nil {
 		dbpool.Close()
 		return Daemon{}, nil, fmt.Errorf("unable to ping database: %w", err)
+	}
+
+	store, err := storage.NewStorageClient(ctx, cfg.S3Aws)
+	if err != nil {
+		return Daemon{}, nil, fmt.Errorf("unable to create storage client: %w", err)
 	}
 
 	doneFuncs = append(doneFuncs, dbpool.Close)
@@ -123,9 +130,10 @@ func newDaemon(ctx context.Context, cfg config.Cfg, opts ...DaemonOpt) (Daemon, 
 	httpServer.RegisterOnShutdown(cancelInflightRequests)
 
 	d := Daemon{
-		DB:     dbpool,
-		Server: httpServer,
-		Router: router,
+		DB:      dbpool,
+		Server:  httpServer,
+		Router:  router,
+		Storage: store,
 	}
 
 	for _, opt := range opts {

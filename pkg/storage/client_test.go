@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"testing"
 	"time"
 
@@ -19,7 +18,7 @@ import (
 
 func TestS3Client(t *testing.T) {
 	ctx := context.Background()
-	os.Setenv("NYUMSPACE_ENV", "local")
+	t.Setenv("NYUMSPACE_ENV", "local")
 	cfg, err := config.NewConfig()
 	require.NoError(t, err)
 	client, err := NewStorageClient(ctx, cfg.S3Aws)
@@ -106,7 +105,7 @@ func TestS3Client(t *testing.T) {
 		largeData[i] = byte(i % 256)
 	}
 
-	err = client.UploadLargeFile(ctx, bucketName, "large/big_file.bin", largeData, 6*1024*1024) // 5MB parts
+	err = client.UploadLargeFile(ctx, bucketName, "large/big_file.bin", largeData, 6*1024*1024)
 	if err != nil {
 		log.Printf("Failed to upload large file: %v", err)
 	} else {
