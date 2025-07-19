@@ -31,11 +31,11 @@ func NewStorageClient(ctx context.Context, cfg *config.S3Aws) (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to load AWS config: %w", err)
 	}
-
 	client := s3.NewFromConfig(s3conf, func(o *s3.Options) {
 		o.UsePathStyle = true
 		o.BaseEndpoint = aws.String(cfg.BaseEndpoint)
 	})
+	log.Printf("Using S3 endpoint: %s", cfg.BaseEndpoint)
 	return &Client{client: client}, nil
 }
 
