@@ -18,6 +18,8 @@ import (
 
 func main() {
 	daemon.Run(func(ctx context.Context, d daemon.Daemon) error {
+		// Initialize storage
+
 		setupRoutes(d)
 
 		return d.Server.ListenAndServe()
@@ -67,14 +69,14 @@ func setupRoutes(d daemon.Daemon) {
 	d.Router.Route("/api/portal", func(r chi.Router) {
 		r.Use(m.Session)
 		r.Use(m.AllowUser)
-		r.Get("api/portal", handlers.GetUser(u))       // Get user by ID
-		r.Put("api/portal", handlers.UpdateUser(u))    // Update user
-		r.Delete("api/portal", handlers.DeleteUser(u)) // Delete user
-		r.Post("api/logout", handlers.LogoutUser(u))   // Logout
+		r.Get("/api/portal", handlers.GetUser(u))       // Get user by ID
+		r.Put("/api/portal", handlers.UpdateUser(u))    // Update user
+		r.Delete("/api/portal", handlers.DeleteUser(u)) // Delete user
+		r.Post("/api/logout", handlers.LogoutUser(u))   // Logout
 	})
 
 	// Home routes
-	h := homes.NewHomes(&d)
+	h := homes.NewHomes(&d) // Pass storage to homes service
 	d.Router.Route("/api/portal/homes", func(r chi.Router) {
 		r.Use(m.Session)
 		r.Use(m.AllowUser)
@@ -83,6 +85,11 @@ func setupRoutes(d daemon.Daemon) {
 		r.Get("/{home-id}", handlers.GetHome(h))       // Get home by ID
 		r.Put("/{home-id}", handlers.UpdateHome(h))    // Update home
 		r.Delete("/{home-id}", handlers.DeleteHome(h)) // Delete home
+
+		// Image upload endpoints
+		//r.Post("/{home-id}/images/upload", handlers.UploadHomeImage(h))               // Direct image upload
+		//r.Post("/{home-id}/images/presigned", handlers.GeneratePresignedUploadURL(h)) // Generate presigned URL
+		//r.Delete("/{home-id}/images", handlers.DeleteHomeImage(h))                    // Delete image
 	})
 
 	// Set router to daemon

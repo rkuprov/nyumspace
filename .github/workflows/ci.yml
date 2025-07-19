@@ -64,6 +64,15 @@ jobs:
         ports:
           # Maps tcp port 5432 on service container to the host
           - 5432:5432
+      localstack-s3:
+        image: localstack/localstack:s3-latest
+        ports:
+          - 4566:4566  # LocalStack Gateway
+        options: >-
+          --health-cmd "curl --silent --fail http://localhost:4566/_localstack/health | grep '\"s3\": \"running\"'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 7
 
     steps:
     - name: Checkout code
@@ -116,11 +125,16 @@ jobs:
 
     - name: Run integration tests
       env:
+          NYUMSPACE_ENV: ${{ vars.NYUMSPACE_ENV }}
           PGUSER: ${{ secrets.PGUSER }}
           PGPASSWORD: ${{ secrets.PGPASSWORD }}
           PGDATABASE: ${{ vars.PGDATABASE }}
           PGHOST: localhost
           PGPORT: 5432
+          S3_ENDPOINT: ${{ vars.S3_ENDPOINT }}
+          S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+          S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+          S3_REGION: ${{ vars.S3_REGION }}
       run: go test -v -tags=integration ./...
 
     - name: Build application

@@ -14,6 +14,7 @@ import (
 	"github.com/rkuprov/nyumspace/pkg/daemon"
 	"github.com/rkuprov/nyumspace/pkg/gen/nyumpb"
 	"github.com/rkuprov/nyumspace/pkg/nyum"
+	"github.com/rkuprov/nyumspace/pkg/storage"
 )
 
 var (
@@ -21,12 +22,14 @@ var (
 )
 
 type Homes struct {
-	DB *pgxpool.Pool
+	DB    *pgxpool.Pool
+	Store *storage.Client
 }
 
 func NewHomes(d *daemon.Daemon) *Homes {
 	return &Homes{
-		DB: d.DB,
+		DB:    d.DB,
+		Store: d.Storage,
 	}
 }
 
@@ -151,11 +154,24 @@ func (h *Homes) UpdateHome(ctx context.Context, req *nyum.HomeUpdateRequest) (*n
 	}, nil
 }
 
-// DeleteHome deletes a home by ID
+// DeleteHome deletes a home by ID and its associated images
 func (h *Homes) DeleteHome(ctx context.Context, req *nyum.HomeDeleteRequest) (*nyum.HomeDeleteResponse, error) {
-	// If authorization passes or isn't required, proceed with deletion
+	// First, get the home to check for images to delete
+	home, err := h.GetHome(ctx, &nyum.HomeRequest{
+		HomeRequest: nyumpb.HomeRequest{
+			HomeId: req.HomeId,
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get home for deletion: %w", err)
+	}
+	if home == nil {
+		return nil, ErrNotFound
+	}
+
+	// Delete the home from database
 	var id string
-	err := h.DB.QueryRow(ctx, sql.DeleteHomeSQL, req.HomeId).Scan(&id)
+	err = h.DB.QueryRow(ctx, sql.DeleteHomeSQL, req.HomeId).Scan(&id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete home: %w", err)
 	}

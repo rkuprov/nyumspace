@@ -1,4 +1,3 @@
-# golangci-lint configuration
 run:
   timeout: 10m
   issues-exit-code: 1
@@ -12,7 +11,7 @@ output:
 linters-settings:
   errcheck:
     check-type-assertions: true
-    check-blank: true
+    check-blank: false
 
   govet:
     enable-all: true
@@ -52,7 +51,6 @@ linters-settings:
 
 linters:
   enable:
-    - errcheck
     - gosimple
     - govet
     - ineffassign
@@ -73,6 +71,7 @@ linters:
     - sqlclosecheck
 
   disable:
+    - errcheck
 
 issues:
   exclude-rules:

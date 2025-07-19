@@ -33,22 +33,19 @@ services:
     networks:
       - nyum_network
 
-  seaweedfs:
-    image: chrislusf/seaweedfs:latest
+  localstack-s3:
+    image: localstack/localstack:s3-latest
     restart: always
     ports:
-      - "9333:9333"  # SeaweedFS master port
-      - "8080:8080"  # SeaweedFS volume server port
-    command:
-      - server -s3 -dir="/data"
-      - volume -dir="/data" -max=5  -mserver="localhost:9333" -port=8080
-    volumes:
-      - seaweedfs_data:/data
+      - "4566:4566"  # LocalStack Gateway
     networks:
-        - nyum_network
+      - nyum_network
+    volumes:
+      - /localstack:/tmp/localstack
+
 volumes:
   pgdata:
-  seaweedfs_data:
+  localstack:
 
 networks:
   nyum_network:
