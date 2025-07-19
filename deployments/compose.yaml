@@ -33,35 +33,19 @@ services:
     networks:
       - nyum_network
 
-#  localstack:
-#    container_name: "${LOCALSTACK_DOCKER_NAME:-localstack-main}"
-#    image: localstack/localstack
-#    ports:
-#      - "127.0.0.1:4566:4566"            # LocalStack Gateway
-#      - "127.0.0.1:4510-4559:4510-4559"  # external services port range
-#    environment:
-#      # LocalStack configuration: https://docs.localstack.cloud/references/configuration/
-#      - DEBUG=${DEBUG:-0}
-#    volumes:
-#      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
-#      - "/var/run/docker.sock:/var/run/docker.sock"
+  localstack-s3:
+    image: localstack/localstack:s3-latest
+    restart: always
+    ports:
+      - "4566:4566"  # LocalStack Gateway
+    networks:
+      - nyum_network
+    volumes:
+      - /localstack:/tmp/localstack
 
-#  seaweedfs:
-#    image: chrislusf/seaweedfs:latest
-#    restart: always
-#    ports:
-#      - "9333:9333"  # SeaweedFS master port
-#      - "8080:8080"  # SeaweedFS volume server port
-#    command:
-#      - server -s3 -dir="/data"
-#      - volume -dir="/data" -max=5  -mserver="localhost:9333" -port=8080
-#    volumes:
-#      - seaweedfs_data:/data
-#    networks:
-#        - nyum_network
 volumes:
   pgdata:
-#  seaweedfs_data:
+  localstack:
 
 networks:
   nyum_network:
