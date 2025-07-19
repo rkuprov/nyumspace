@@ -78,8 +78,8 @@ func setupRoutes(d daemon.Daemon) {
 	// Home routes
 	h := homes.NewHomes(&d) // Pass storage to homes service
 	d.Router.Route("/api/portal/homes", func(r chi.Router) {
-		//r.Use(m.Session)
-		//r.Use(m.AllowUser)
+		r.Use(m.Session)
+		r.Use(m.AllowUser)
 		r.Get("/all", handlers.GetAllHomesForUser(h))  // Get all homes for the current user
 		r.Post("/", handlers.CreateHome(h))            // Create a new home
 		r.Get("/{home-id}", handlers.GetHome(h))       // Get home by ID
