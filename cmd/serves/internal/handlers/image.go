@@ -1,18 +1,5 @@
 package handlers
 
-import (
-	"errors"
-	"fmt"
-	"net/http"
-
-	"github.com/go-chi/chi/v5"
-
-	"github.com/rkuprov/nyumspace/pkg/auth"
-	"github.com/rkuprov/nyumspace/pkg/imageutil"
-	"github.com/rkuprov/nyumspace/pkg/rest"
-	"github.com/rkuprov/nyumspace/pkg/store"
-)
-
 // ImageUploadResponse represents the response for image upload operations
 type ImageUploadResponse struct {
 	ImageURL string `json:"image_url"`
@@ -26,8 +13,9 @@ type PresignedUploadResponse struct {
 	Message   string `json:"message"`
 }
 
+/*
 // UploadHomeImage handles direct image upload for homes
-func UploadHomeImage(s store.Store) func(w http.ResponseWriter, r *http.Request) {
+func UploadHomeImage(s storage.Client) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		homeID := chi.URLParam(r, "home-id")
 		if homeID == "" {
@@ -87,7 +75,7 @@ func UploadHomeImage(s store.Store) func(w http.ResponseWriter, r *http.Request)
 }
 
 // GeneratePresignedUploadURL generates a presigned URL for direct upload
-func GeneratePresignedUploadURL(s store.Store) func(w http.ResponseWriter, r *http.Request) {
+func GeneratePresignedUploadURL(s storage.Store) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		homeID := chi.URLParam(r, "home-id")
 		if homeID == "" {
@@ -132,7 +120,7 @@ func GeneratePresignedUploadURL(s store.Store) func(w http.ResponseWriter, r *ht
 }
 
 // DeleteHomeImage handles deletion of home images
-func DeleteHomeImage(s store.Store) func(w http.ResponseWriter, r *http.Request) {
+func DeleteHomeImage(s storage.Store) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		homeID := chi.URLParam(r, "home-id")
 		if homeID == "" {
@@ -167,7 +155,7 @@ func DeleteHomeImage(s store.Store) func(w http.ResponseWriter, r *http.Request)
 		}
 
 		// Extract key from URL (this assumes S3Store implementation)
-		if s3Store, ok := s.(*store.S3Store); ok {
+		if s3Store, ok := s.(*storage.S3Store); ok {
 			key, err := s3Store.ExtractKeyFromURL(req.ImageURL)
 			if err != nil {
 				rest.ErrBadRequest(w, fmt.Errorf("invalid image URL: %w", err))
@@ -186,3 +174,4 @@ func DeleteHomeImage(s store.Store) func(w http.ResponseWriter, r *http.Request)
 		})
 	}
 }
+*/

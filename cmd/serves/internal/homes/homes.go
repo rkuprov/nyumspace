@@ -14,7 +14,7 @@ import (
 	"github.com/rkuprov/nyumspace/pkg/daemon"
 	"github.com/rkuprov/nyumspace/pkg/gen/nyumpb"
 	"github.com/rkuprov/nyumspace/pkg/nyum"
-	"github.com/rkuprov/nyumspace/pkg/store"
+	"github.com/rkuprov/nyumspace/pkg/storage"
 )
 
 var (
@@ -23,13 +23,12 @@ var (
 
 type Homes struct {
 	DB    *pgxpool.Pool
-	Store store.Store
+	Store storage.Client
 }
 
-func NewHomes(d *daemon.Daemon, s store.Store) *Homes {
+func NewHomes(d *daemon.Daemon) *Homes {
 	return &Homes{
-		DB:    d.DB,
-		Store: s,
+		DB: d.DB,
 	}
 }
 
@@ -174,16 +173,6 @@ func (h *Homes) DeleteHome(ctx context.Context, req *nyum.HomeDeleteRequest) (*n
 	err = h.DB.QueryRow(ctx, sql.DeleteHomeSQL, req.HomeId).Scan(&id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete home: %w", err)
-	}
-
-	// Delete associated image from storage if it exists
-	if home.ImageUrl != "" && h.Store != nil {
-		if s3Store, ok := h.Store.(*store.S3Store); ok {
-			if key, err := s3Store.ExtractKeyFromURL(home.ImageUrl); err == nil {
-				// Best effort - don't fail the deletion if image deletion fails
-				_ = h.Store.Delete(ctx, key)
-			}
-		}
 	}
 
 	return &nyum.HomeDeleteResponse{

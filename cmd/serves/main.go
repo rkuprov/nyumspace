@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/go-chi/chi/v5"
 
@@ -15,61 +14,20 @@ import (
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/users"
 	"github.com/rkuprov/nyumspace/pkg/auth"
 	"github.com/rkuprov/nyumspace/pkg/daemon"
-	"github.com/rkuprov/nyumspace/pkg/store"
 )
 
 func main() {
 	daemon.Run(func(ctx context.Context, d daemon.Daemon) error {
 		// Initialize storage
-		storageConfig := getStorageConfig()
-		s, err := store.NewStore(storageConfig)
-		if err != nil {
-			log.Fatalf("Failed to initialize storage: %v", err)
-		}
 
-		setupRoutes(d, s)
+		setupRoutes(d)
 
 		return d.Server.ListenAndServe()
 	},
 		daemon.WithAddress("localhost:3000"))
 }
 
-// getStorageConfig returns storage configuration based on environment variables
-func getStorageConfig() *store.Config {
-	provider := os.Getenv("STORAGE_PROVIDER")
-	if provider == "" {
-		provider = "localstack" // Default to localstack for development
-	}
-
-	switch provider {
-	case "localstack":
-		bucket := os.Getenv("S3_BUCKET")
-		if bucket == "" {
-			bucket = "nyumspace-images" // Default bucket name
-		}
-		return store.DefaultLocalStackConfig(bucket)
-	case "s3":
-		return &store.Config{
-			Provider:    "s3",
-			Region:      getEnvOrDefault("AWS_REGION", "us-east-1"),
-			Bucket:      getEnvOrDefault("S3_BUCKET", "nyumspace-images"),
-			AccessKeyID: os.Getenv("AWS_ACCESS_KEY_ID"),
-			SecretKey:   os.Getenv("AWS_SECRET_ACCESS_KEY"),
-		}
-	default:
-		log.Printf("Unknown storage provider '%s', defaulting to localstack", provider)
-		return store.DefaultLocalStackConfig("nyumspace-images")
-	}
-}
-
-func getEnvOrDefault(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return defaultValue
-}
-
-func setupRoutes(d daemon.Daemon, s store.Store) {
+func setupRoutes(d daemon.Daemon) {
 	// Create a Chi router if not already created
 	if d.Router == nil {
 		panic("router not initialized")
@@ -118,7 +76,7 @@ func setupRoutes(d daemon.Daemon, s store.Store) {
 	})
 
 	// Home routes
-	h := homes.NewHomes(&d, s) // Pass storage to homes service
+	h := homes.NewHomes(&d) // Pass storage to homes service
 	d.Router.Route("/api/portal/homes", func(r chi.Router) {
 		//r.Use(m.Session)
 		//r.Use(m.AllowUser)
@@ -129,9 +87,9 @@ func setupRoutes(d daemon.Daemon, s store.Store) {
 		r.Delete("/{home-id}", handlers.DeleteHome(h)) // Delete home
 
 		// Image upload endpoints
-		r.Post("/{home-id}/images/upload", handlers.UploadHomeImage(s))               // Direct image upload
-		r.Post("/{home-id}/images/presigned", handlers.GeneratePresignedUploadURL(s)) // Generate presigned URL
-		r.Delete("/{home-id}/images", handlers.DeleteHomeImage(s))                    // Delete image
+		r.Post("/{home-id}/images/upload", handlers.UploadHomeImage(h))               // Direct image upload
+		r.Post("/{home-id}/images/presigned", handlers.GeneratePresignedUploadURL(h)) // Generate presigned URL
+		r.Delete("/{home-id}/images", handlers.DeleteHomeImage(h))                    // Delete image
 	})
 
 	// Set router to daemon
