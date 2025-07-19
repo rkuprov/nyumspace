@@ -18,7 +18,6 @@ import (
 
 func TestS3Client(t *testing.T) {
 	ctx := context.Background()
-	t.Setenv("NYUMSPACE_ENV", "local")
 	cfg, err := config.NewConfig()
 	require.NoError(t, err)
 	client, err := NewStorageClient(ctx, cfg.S3Aws)
