@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"strings"
 	"time"
 
@@ -207,11 +208,12 @@ func (c *Client) UploadLargeFile(ctx context.Context, bucketName, key string, da
 		}
 
 		partData := data[offset:end]
+		currentPart := partNumber
 
 		uploadResp, err := c.client.UploadPart(ctx, &s3.UploadPartInput{
 			Bucket:     aws.String(bucketName),
 			Key:        aws.String(key),
-			PartNumber: &partNumber,
+			PartNumber: &currentPart,
 			UploadId:   uploadID,
 			Body:       bytes.NewReader(partData),
 		})
@@ -227,12 +229,14 @@ func (c *Client) UploadLargeFile(ctx context.Context, bucketName, key string, da
 
 		completedParts = append(completedParts, types.CompletedPart{
 			ETag:       uploadResp.ETag,
-			PartNumber: &partNumber,
+			PartNumber: &currentPart,
 		})
 
+		log.Printf("Uploaded part %d: %s", currentPart, *uploadResp.ETag)
 		partNumber++
 	}
 
+	log.Println("Uploading completed parts. Upload ID:", *uploadID)
 	// Complete the multipart upload
 	_, err = c.client.CompleteMultipartUpload(ctx, &s3.CompleteMultipartUploadInput{
 		Bucket:   aws.String(bucketName),
@@ -248,139 +252,3 @@ func (c *Client) UploadLargeFile(ctx context.Context, bucketName, key string, da
 
 	return nil
 }
-
-/*
-func main() {
-	// Initialize SeaweedFS S3 client
-	client, err := NewStorageClient(nil, nil)
-	if err != nil {
-		log.Fatalf("Failed to create S3 client: %v", err)
-	}
-
-	ctx := context.Background()
-	bucketName := uuid.NewString()
-
-	// Example 1: Create a bucket
-	fmt.Println("=== Example 1: Create Bucket ===")
-	err = client.CreateBucket(ctx, bucketName)
-	if err != nil {
-		fmt.Printf("Failed to create bucket: %v\n", err)
-	} else {
-		fmt.Printf("Bucket '%s' created successfully\n", bucketName)
-	}
-
-	// Example 3: Upload objects
-	fmt.Println("\n=== Example 3: Upload Objects ===")
-	testData := []byte("Hello, SeaweedFS S3 Interface!")
-
-	err = client.PutObject(ctx, bucketName, "test/hello.txt", testData, "text/plain")
-	if err != nil {
-		log.Printf("Failed to upload object: %v", err)
-	} else {
-		fmt.Println("Object uploaded successfully")
-	}
-
-	// Upload JSON data
-	jsonData := []byte(`{"message": "Hello from SeaweedFS", "timestamp": "2024-01-01T00:00:00Z"}`)
-	err = client.PutObject(ctx, bucketName, "data/sample.json", jsonData, "application/json")
-	if err != nil {
-		log.Printf("Failed to upload JSON: %v", err)
-	} else {
-		fmt.Println("JSON object uploaded successfully")
-	}
-
-	// Example 2: List buckets
-	fmt.Println("\n=== Example 2: List Buckets ===")
-	buckets, err := client.ListBuckets(ctx)
-	if err != nil {
-		fmt.Printf("Failed to list buckets: %v", err)
-	} else {
-		fmt.Printf("Buckets: %v\n", buckets)
-	}
-	// Example 4: List objects
-	fmt.Println("\n=== Example 4: List Objects ===")
-	objects, err := client.ListObjects(ctx, bucketName, "")
-	if err != nil {
-		log.Printf("Failed to list objects: %v", err)
-	} else {
-		fmt.Printf("Objects in bucket '%s':\n", bucketName)
-		for _, obj := range objects {
-			fmt.Printf("- %s (size: %d, modified: %s)\n", *obj.Key, *obj.Size, obj.LastModified.Format(time.RFC3339))
-		}
-	}
-
-	// Example 5: Download object
-	fmt.Println("\n=== Example 5: Download Object ===")
-	downloadedData, err := client.GetObject(ctx, bucketName, "test/hello.txt")
-	if err != nil {
-		fmt.Printf("Failed to download object: %v\n", err)
-	} else {
-		fmt.Printf("Downloaded data: %s\n", string(downloadedData))
-	}
-
-	// Example 6: Object metadata
-	fmt.Println("\n=== Example 6: Object Metadata ===")
-	metadata, err := client.HeadObject(ctx, bucketName, "test/hello.txt")
-	if err != nil {
-		log.Printf("Failed to get object metadata: %v", err)
-	} else {
-		fmt.Printf("Content-Type: %s\n", *metadata.ContentType)
-		fmt.Printf("Content-Length: %d\n", *metadata.ContentLength)
-		fmt.Printf("Last-Modified: %s\n", metadata.LastModified.Format(time.RFC3339))
-	}
-
-	// Example 7: Copy object
-	fmt.Println("\n=== Example 7: Copy Object ===")
-	err = client.CopyObject(ctx, bucketName, "test/hello.txt", bucketName, "test/hello_copy.txt")
-	if err != nil {
-		log.Printf("Failed to copy object: %v", err)
-	} else {
-		fmt.Println("Object copied successfully")
-	}
-
-	// Example 8: Check if object exists
-	fmt.Println("\n=== Example 8: Check Object Existence ===")
-	exists, err := client.ObjectExists(ctx, bucketName, "test/hello.txt")
-	if err != nil {
-		log.Printf("Failed to check object existence: %v", err)
-	} else {
-		fmt.Printf("Object exists: %v\n", exists)
-	}
-
-	// Example 9: Generate presigned URL
-	fmt.Println("\n=== Example 9: Generate Presigned URL ===")
-	presignedURL, err := client.GeneratePresignedURL(ctx, bucketName, "test/hello.txt", 1*time.Hour)
-	if err != nil {
-		log.Printf("Failed to generate presigned URL: %v", err)
-	} else {
-		fmt.Printf("Presigned URL: %s\n", presignedURL)
-	}
-
-	// Example 10: Large file upload (multipart)
-	fmt.Println("\n=== Example 10: Multipart Upload ===")
-	largeData := make([]byte, 10*1024*1024) // 10MB of data
-	for i := range largeData {
-		largeData[i] = byte(i % 256)
-	}
-
-	err = client.UploadLargeFile(ctx, bucketName, "large/big_file.bin", largeData, 5*1024*1024) // 5MB parts
-	if err != nil {
-		log.Printf("Failed to upload large file: %v", err)
-	} else {
-		fmt.Println("Large file uploaded successfully using multipart upload")
-	}
-
-	// Example 11: Cleanup - delete objects
-	fmt.Println("\n=== Example 11: Cleanup ===")
-	objectsToDelete := []string{"test/hello.txt", "test/hello_copy.txt", "data/sample.json", "large/big_file.bin"}
-
-	for _, key := range objectsToDelete {
-		err = client.DeleteObject(ctx, bucketName, key)
-		if err != nil {
-			log.Printf("Failed to delete object %s: %v", key, err)
-		} else {
-			fmt.Printf("Deleted object: %s\n", key)
-		}
-	}
-}
-*/
