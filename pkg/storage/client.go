@@ -3,6 +3,7 @@ package storage
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -219,11 +220,14 @@ func (c *Client) UploadLargeFile(ctx context.Context, bucketName, key string, da
 		})
 		if err2 != nil {
 			// Abort the multipart upload on error
-			c.client.AbortMultipartUpload(ctx, &s3.AbortMultipartUploadInput{
+			_, err3 := c.client.AbortMultipartUpload(ctx, &s3.AbortMultipartUploadInput{
 				Bucket:   aws.String(bucketName),
 				Key:      aws.String(key),
 				UploadId: uploadID,
 			})
+			if err3 != nil {
+				return errors.Join(err, err2, err3)
+			}
 			return fmt.Errorf("failed to upload part %d: %w", partNumber, err2)
 		}
 
