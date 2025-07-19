@@ -13,6 +13,7 @@ import (
 type Cfg struct {
 	PG         *Postgres   `json:"postgres"`
 	HTTPServer *HTTPServer `json:"http_server"`
+	S3Aws      *S3Aws      `json:"s3_aws"`
 }
 type Postgres struct {
 	Host     string `json:"host"`
@@ -24,6 +25,12 @@ type Postgres struct {
 type HTTPServer struct {
 	Host string `json:"host"`
 	Port string `json:"port"`
+}
+type S3Aws struct {
+	Region          string `json:"region"`
+	Endpoint        string `json:"endpoint"`
+	AccessKeyID     string `json:"access_key_id"`
+	SecretAccessKey string `json:"secret_access_key"`
 }
 
 func NewConfig() (Cfg, error) {
@@ -48,6 +55,12 @@ func NewConfig() (Cfg, error) {
 		HTTPServer: &HTTPServer{
 			Host: os.Getenv("HTTP_HOST"),
 			Port: os.Getenv("HTTP_PORT"),
+		},
+		S3Aws: &S3Aws{
+			Region:          os.Getenv("S3_REGION"),
+			Endpoint:        os.Getenv("S3_ENDPOINT"),
+			AccessKeyID:     os.Getenv("S3_ACCESS_KEY_ID"),
+			SecretAccessKey: os.Getenv("S3_SECRET_ACCESS_KEY"),
 		},
 	}
 
