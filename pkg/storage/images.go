@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -60,4 +61,50 @@ func (c *Client) AddImage(ctx context.Context, userID, filename string, payload 
 	}
 
 	return key, nil
+}
+
+// GetImage retrieves an image from S3 by userID and key. It returns the image as an io.ReadCloser to avoid loading the
+// entire image into memory at once. The caller is responsible for closing the returned io.ReadCloser.
+func (c *Client) GetImage(ctx context.Context, userID, key string) (io.ReadCloser, error) {
+	if key == "" {
+		return nil, fmt.Errorf("key cannot be empty")
+	}
+	if userID == "" {
+		return nil, fmt.Errorf("userID cannot be empty")
+	}
+	if !strings.HasPrefix(key, userID) {
+		return nil, fmt.Errorf("key %s does not belong to user %s", key, userID)
+	}
+
+	result, err := c.client.GetObject(ctx, &s3.GetObjectInput{
+		Bucket: aws.String(bucketImages),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get object: %w", err)
+	}
+
+	return result.Body, nil
+}
+
+func (c *Client) DeleteImage(ctx context.Context, userID, key string) error {
+	if key == "" {
+		return fmt.Errorf("key cannot be empty")
+	}
+	if userID == "" {
+		return fmt.Errorf("userID cannot be empty")
+	}
+	if !strings.HasPrefix(key, userID) {
+		return fmt.Errorf("key %s does not belong to user %s", key, userID)
+	}
+
+	_, err := c.client.DeleteObject(ctx, &s3.DeleteObjectInput{
+		Bucket: aws.String(bucketImages),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to delete object: %w", err)
+	}
+
+	return nil
 }
