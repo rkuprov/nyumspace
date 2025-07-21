@@ -1,177 +1,221 @@
 package handlers
 
-// ImageUploadResponse represents the response for image upload operations
-type ImageUploadResponse struct {
-	ImageURL string `json:"image_url"`
-	Message  string `json:"message"`
-}
+import (
+	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"path/filepath"
 
-// PresignedUploadResponse represents the response for presigned upload requests
-type PresignedUploadResponse struct {
-	UploadURL string `json:"upload_url"`
-	ImageKey  string `json:"image_key"`
-	Message   string `json:"message"`
-}
+	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
+	"github.com/ydb-platform/ydb-go-sdk/v3/log"
 
-/*
-// UploadHomeImage handles direct image upload for homes
-func UploadHomeImage(s storage.Client) func(w http.ResponseWriter, r *http.Request) {
+	"github.com/rkuprov/nyumspace/cmd/serves/internal/homes"
+	"github.com/rkuprov/nyumspace/pkg/auth"
+	"github.com/rkuprov/nyumspace/pkg/rest"
+)
+
+// GetHomeImage retrieves a home image by imageID
+func GetHomeImage(h *homes.Homes) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		homeID := chi.URLParam(r, "home-id")
-		if homeID == "" {
-			rest.ErrValidation(w, errors.New("home-id is required"))
+		userID := r.Header.Get(auth.UserIDHeader)
+		if userID == "" {
+			rest.ErrValidation(w, errors.New("no user id provided"))
 			return
 		}
 
-		// Get the user ID from the header set by middleware
+		imageID := chi.URLParam(r, "imageID")
+		if imageID == "" {
+			rest.ErrValidation(w, errors.New("no image id provided"))
+			return
+		}
+
+		// Get image key from database
+		var imageKey string
+		var dbUserID string
+		err := h.DB.QueryRow(r.Context(),
+			"SELECT image_key, user_id FROM nyum_images WHERE id = $1",
+			imageID).Scan(&imageKey, &dbUserID)
+		if err != nil {
+			rest.ErrNotFound(w, err)
+			return
+		}
+
+		// Verify user owns this image
+		if dbUserID != userID {
+			rest.ErrUnauthorized(w, errors.New("not authorized"))
+			log.Error(fmt.Errorf("not authorized. User ID: %s, Image ID: %s", userID, imageID))
+			return
+		}
+
+		// Get image from S3
+		imageReader, err := h.Store.GetImage(r.Context(), userID, imageKey)
+		if err != nil {
+			rest.ErrInternal(w, err)
+			return
+		}
+		defer imageReader.Close()
+
+		// Determine content type from image key extension
+		ext := filepath.Ext(imageKey)
+		var contentType string
+		switch ext {
+		case ".jpg", ".jpeg":
+			contentType = "image/jpeg"
+		case ".png":
+			contentType = "image/png"
+		case ".gif":
+			contentType = "image/gif"
+		default:
+			contentType = "application/octet-stream"
+		}
+
+		w.Header().Set("Content-Type", contentType)
+		w.Header().Set("Cache-Control", "public, max-age=31536000") // Cache for 1 year
+
+		if _, err = io.Copy(w, imageReader); err != nil {
+			// If we've already started writing, we can't send an error status
+			log.Error(err)
+			return
+		}
+	}
+}
+
+// UploadHomeImage handles image upload for a home
+func UploadHomeImage(h *homes.Homes) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		userID := r.Header.Get(auth.UserIDHeader)
 		if userID == "" {
-			//rest.ErrUnauthorized(w, errors.New("user ID is required"))
-			userID = "test-user" // For testing purposes, remove in production
+			rest.ErrValidation(w, errors.New("no user id provided"))
+			return
+		}
+
+		homeID := chi.URLParam(r, "home-id")
+		if homeID == "" {
+			rest.ErrValidation(w, errors.New("no home id provided"))
+			return
+		}
+
+		// Verify user owns this home
+		var ownerID string
+		err := h.DB.QueryRow(r.Context(),
+			"SELECT owner_id FROM homes WHERE id = $1",
+			homeID).Scan(&ownerID)
+		if err != nil {
+			rest.ErrNotFound(w, fmt.Errorf("home not found: %w", err))
+			return
+		}
+
+		if ownerID != userID {
+			rest.ErrUnauthorized(w, errors.New("not authorized"))
+			log.Error(fmt.Errorf("not authorized. User ID: %s. Owner id: %s", userID, ownerID))
 			return
 		}
 
 		// Parse multipart form
-		err := r.ParseMultipartForm(10 << 20) // 10 MB max
-		if err != nil {
-			rest.ErrBadRequest(w, fmt.Errorf("failed to parse multipart form: %w", err))
+		if err = r.ParseMultipartForm(10 << 20); err != nil { // 10MB max
+			rest.ErrInternal(w, err)
 			return
 		}
 
-		// Get the file from form
 		file, header, err := r.FormFile("image")
 		if err != nil {
-			rest.ErrBadRequest(w, fmt.Errorf("failed to get image file: %w", err))
+			rest.ErrBadRequest(w, err)
 			return
 		}
 		defer file.Close()
 
-		// Validate content type
-		contentType := header.Header.Get("Content-Type")
-		if contentType == "" {
-			contentType = imageutil.ExtractContentTypeFromFilename(header.Filename)
-		}
-
-		if err := imageutil.ValidateImageType(contentType); err != nil {
-			rest.ErrBadRequest(w, err)
-			return
-		}
-
-		// Generate unique key for the image
-		imageKey := imageutil.GenerateImageKey(userID, homeID, contentType)
-
-		// Upload to storage
-		imageURL, err := s.Upload(r.Context(), imageKey, file, contentType)
+		// Upload to S3
+		imageKey, err := h.Store.AddImage(r.Context(), userID, header.Filename, file)
 		if err != nil {
-			rest.ErrInternal(w, fmt.Errorf("failed to upload image: %w", err))
+			rest.ErrInternal(w, fmt.Errorf("failed to upload image to S3: %w", err))
 			return
 		}
 
-		rest.OK(w, ImageUploadResponse{
-			ImageURL: imageURL,
-			Message:  "Image uploaded successfully",
+		// Save image record to database
+		imageID := uuid.NewString()
+		_, err = h.DB.Exec(r.Context(),
+			"INSERT INTO nyum_images (id, user_id, image_key, home_id) VALUES ($1, $2, $3, $4)",
+			imageID, userID, imageKey, homeID)
+		if err != nil {
+			// Try to clean up S3 object if database insert fails
+			err2 := h.Store.DeleteImage(r.Context(), userID, imageKey)
+			if err2 != nil {
+				rest.ErrInternal(w, errors.Join(err2, err))
+				log.Error(fmt.Errorf("failed to delete image from S3 after DB insert failure: %w", err2))
+			} else {
+				rest.ErrInternal(w, fmt.Errorf("failed to delete image from S3 after DB insert failure: %w", err))
+				log.Error(fmt.Errorf("failed to save image record: %w", err))
+			}
+			return
+		}
+
+		// Return success response
+		response := map[string]interface{}{
+			"image_id": imageID,
+			"home_id":  homeID,
+		}
+
+		rest.OK(w, rest.Result[any]{
+			Data:    []any{response},
+			Message: "Image uploaded successfully",
 		})
 	}
 }
 
-// GeneratePresignedUploadURL generates a presigned URL for direct upload
-func GeneratePresignedUploadURL(s storage.Store) func(w http.ResponseWriter, r *http.Request) {
+// DeleteHomeImage deletes a home image by imageID
+func DeleteHomeImage(h *homes.Homes) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		homeID := chi.URLParam(r, "home-id")
-		if homeID == "" {
-			rest.ErrValidation(w, errors.New("home-id is required"))
-			return
-		}
-
-		// Get the user ID from the header set by middleware
 		userID := r.Header.Get(auth.UserIDHeader)
 		if userID == "" {
-			rest.ErrUnauthorized(w, errors.New("user ID is required"))
+			rest.ErrValidation(w, errors.New("no user id provided"))
 			return
 		}
 
-		// Get content type from query params
-		contentType := r.URL.Query().Get("content_type")
-		if contentType == "" {
-			contentType = "image/jpeg" // Default
-		}
-
-		if err := imageutil.ValidateImageType(contentType); err != nil {
-			rest.ErrBadRequest(w, err)
+		imageID := chi.URLParam(r, "imageID")
+		if imageID == "" {
+			rest.ErrValidation(w, errors.New("no image id provided"))
 			return
 		}
 
-		// Generate unique key for the image
-		imageKey := imageutil.GenerateImageKey(userID, homeID, contentType)
-
-		// Generate presigned URL
-		uploadURL, err := s.GeneratePresignedURL(r.Context(), imageKey, contentType)
+		// Get image details from database
+		var imageKey string
+		var ownerID string
+		var homeID string
+		err := h.DB.QueryRow(r.Context(),
+			"SELECT image_key, user_id, home_id FROM nyum_images WHERE id = $1",
+			imageID).Scan(&imageKey, &ownerID, &homeID)
 		if err != nil {
-			rest.ErrInternal(w, fmt.Errorf("failed to generate presigned URL: %w", err))
+			rest.ErrNotFound(w, fmt.Errorf("image not found: %w", err))
 			return
 		}
 
-		rest.OK(w, PresignedUploadResponse{
-			UploadURL: uploadURL,
-			ImageKey:  imageKey,
-			Message:   "Presigned URL generated successfully",
+		// Verify user owns this image
+		if ownerID != userID {
+			rest.ErrUnauthorized(w, errors.New("not authorized"))
+			log.Error(fmt.Errorf("not authorized. User ID: %s, Image ID: %s, Ownder ID: %s", userID, imageID, ownerID))
+			return
+		}
+
+		// Delete from S3
+		if err = h.Store.DeleteImage(r.Context(), userID, imageKey); err != nil {
+			rest.ErrInternal(w, fmt.Errorf("failed to delete image from S3: %w", err))
+			return
+		}
+
+		// Delete from database
+		_, err = h.DB.Exec(r.Context(),
+			"DELETE FROM nyum_images WHERE id = $1",
+			imageID)
+		if err != nil {
+			rest.ErrInternal(w, fmt.Errorf("failed to delete image from S3: %w", err))
+			return
+		}
+
+		// Return success response
+		rest.OK(w, rest.Result[any]{
+			Message: "Image deleted successfully",
 		})
 	}
 }
-
-// DeleteHomeImage handles deletion of home images
-func DeleteHomeImage(s storage.Store) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		homeID := chi.URLParam(r, "home-id")
-		if homeID == "" {
-			rest.ErrValidation(w, errors.New("home-id is required"))
-			return
-		}
-
-		// Get the user ID from the header set by middleware
-		userID := r.Header.Get(auth.UserIDHeader)
-		if userID == "" {
-			rest.ErrUnauthorized(w, errors.New("user ID is required"))
-			return
-		}
-
-		// Get image URL from request body
-		var req struct {
-			ImageURL string `json:"image_url"`
-		}
-
-		reqPayload, err := rest.ExtractPayload[struct {
-			ImageURL string `json:"image_url"`
-		}](r)
-		if err != nil {
-			rest.ErrBadRequest(w, err)
-			return
-		}
-		req = reqPayload
-
-		if req.ImageURL == "" {
-			rest.ErrValidation(w, errors.New("image_url is required"))
-			return
-		}
-
-		// Extract key from URL (this assumes S3Store implementation)
-		if s3Store, ok := s.(*storage.S3Store); ok {
-			key, err := s3Store.ExtractKeyFromURL(req.ImageURL)
-			if err != nil {
-				rest.ErrBadRequest(w, fmt.Errorf("invalid image URL: %w", err))
-				return
-			}
-
-			// Delete from storage
-			if err := s.Delete(r.Context(), key); err != nil {
-				rest.ErrInternal(w, fmt.Errorf("failed to delete image: %w", err))
-				return
-			}
-		}
-
-		rest.OK(w, map[string]string{
-			"message": "Image deleted successfully",
-		})
-	}
-}
-*/

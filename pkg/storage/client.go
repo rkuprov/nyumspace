@@ -39,8 +39,8 @@ func NewStorageClient(ctx context.Context, cfg *config.S3Aws) (*Client, error) {
 	return &Client{client: client}, nil
 }
 
-// CreateBucket creates a new S3 bucket
-func (c *Client) CreateBucket(ctx context.Context, bucketName string) error {
+// createBucket creates a new S3 bucket
+func (c *Client) createBucket(ctx context.Context, bucketName string) error {
 	_, err := c.client.CreateBucket(ctx, &s3.CreateBucketInput{
 		Bucket: aws.String(bucketName),
 	})
@@ -50,8 +50,8 @@ func (c *Client) CreateBucket(ctx context.Context, bucketName string) error {
 	return nil
 }
 
-// ListBuckets lists all buckets
-func (c *Client) ListBuckets(ctx context.Context) ([]string, error) {
+// listBuckets lists all buckets
+func (c *Client) listBuckets(ctx context.Context) ([]string, error) {
 	result, err := c.client.ListBuckets(ctx, &s3.ListBucketsInput{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to list buckets: %w", err)
@@ -64,8 +64,8 @@ func (c *Client) ListBuckets(ctx context.Context) ([]string, error) {
 	return buckets, nil
 }
 
-// PutObject uploads an object to S3
-func (c *Client) PutObject(ctx context.Context, bucketName, key string, data []byte, contentType string) error {
+// putObject uploads an object to S3
+func (c *Client) putObject(ctx context.Context, bucketName, key string, data []byte, contentType string) error {
 	if contentType == "" {
 		contentType = "application/octet-stream"
 	}
@@ -96,8 +96,8 @@ func (c *Client) GetObject(ctx context.Context, bucketName, key string) ([]byte,
 	return io.ReadAll(result.Body)
 }
 
-// DeleteObject deletes an object from S3
-func (c *Client) DeleteObject(ctx context.Context, bucketName, key string) error {
+// deleteObject deletes an object from S3
+func (c *Client) deleteObject(ctx context.Context, bucketName, key string) error {
 	_, err := c.client.DeleteObject(ctx, &s3.DeleteObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(key),
@@ -125,8 +125,8 @@ func (c *Client) ListObjects(ctx context.Context, bucketName, prefix string) ([]
 	return result.Contents, nil
 }
 
-// HeadObject gets object metadata
-func (c *Client) HeadObject(ctx context.Context, bucketName, key string) (*s3.HeadObjectOutput, error) {
+// headObject gets object metadata
+func (c *Client) headObject(ctx context.Context, bucketName, key string) (*s3.HeadObjectOutput, error) {
 	result, err := c.client.HeadObject(ctx, &s3.HeadObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(key),
@@ -141,8 +141,8 @@ func (c *Client) HeadObject(ctx context.Context, bucketName, key string) (*s3.He
 	return result, nil
 }
 
-// CopyObject copies an object within the same bucket or between buckets
-func (c *Client) CopyObject(ctx context.Context, srcBucket, srcKey, destBucket, destKey string) error {
+// copyObject copies an object within the same bucket or between buckets
+func (c *Client) copyObject(ctx context.Context, srcBucket, srcKey, destBucket, destKey string) error {
 	copySource := fmt.Sprintf("%s/%s", srcBucket, srcKey)
 
 	_, err := c.client.CopyObject(ctx, &s3.CopyObjectInput{
@@ -156,9 +156,9 @@ func (c *Client) CopyObject(ctx context.Context, srcBucket, srcKey, destBucket, 
 	return nil
 }
 
-// ObjectExists checks if an object exists
-func (c *Client) ObjectExists(ctx context.Context, bucketName, key string) (bool, error) {
-	_, err := c.HeadObject(ctx, bucketName, key)
+// objectExists checks if an object exists
+func (c *Client) objectExists(ctx context.Context, bucketName, key string) (bool, error) {
+	_, err := c.headObject(ctx, bucketName, key)
 	if err != nil {
 		if errors.Is(err, &types.NoSuchKey{}) {
 			return false, nil
@@ -168,8 +168,8 @@ func (c *Client) ObjectExists(ctx context.Context, bucketName, key string) (bool
 	return true, nil
 }
 
-// GeneratePresignedURL generates a presigned URL for object access
-func (c *Client) GeneratePresignedURL(ctx context.Context, bucketName, key string, expiration time.Duration) (string, error) {
+// generatePresignedURLGet generates a presigned URL for object access
+func (c *Client) generatePresignedURLGet(ctx context.Context, bucketName, key string, expiration time.Duration) (string, error) {
 	presignClient := s3.NewPresignClient(c.client)
 
 	request, err := presignClient.PresignGetObject(ctx, &s3.GetObjectInput{
@@ -185,8 +185,8 @@ func (c *Client) GeneratePresignedURL(ctx context.Context, bucketName, key strin
 	return request.URL, nil
 }
 
-// UploadLargeFile uploads a large file using multipart upload
-func (c *Client) UploadLargeFile(ctx context.Context, bucketName, key string, data []byte, partSize int64) error {
+// uploadLargeFile uploads a large file using multipart upload
+func (c *Client) uploadLargeFile(ctx context.Context, bucketName, key string, data []byte, partSize int64) error {
 	// Create multipart upload
 	createResp, err := c.client.CreateMultipartUpload(ctx, &s3.CreateMultipartUploadInput{
 		Bucket: aws.String(bucketName),

@@ -51,10 +51,25 @@ CREATE TABLE admins
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE nyum_images
+(
+    id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id    UUID         NOT NULL,
+    image_key  VARCHAR(500) NOT NULL,
+    home_id    UUID,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (home_id) REFERENCES homes (id) ON DELETE CASCADE
+);
+CREATE INDEX index_nyum_images_user_id ON nyum_images (user_id);
+CREATE INDEX index_nyum_images_home_id ON nyum_images (home_id);
+CREATE INDEX index_nyum_images_key ON nyum_images (image_key);
+
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
+DROP TABLE nyum_images ;
 DROP TABLE homes;
 DROP TABLE IF EXISTS sessions;
 DROP TABLE users;

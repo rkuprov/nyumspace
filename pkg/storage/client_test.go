@@ -25,22 +25,22 @@ func TestS3Client(t *testing.T) {
 
 	bucketName := uuid.NewString()
 	log.Println("Creating a new bucket...")
-	err = client.CreateBucket(ctx, bucketName)
+	err = client.createBucket(ctx, bucketName)
 	assert.NoError(t, err, "Failed to create bucket")
 	log.Println("Created bucket:", bucketName)
 
 	log.Println("Creating a new object...")
 	testData := []byte("Hello, LocalStack S3 Interface!")
 
-	err = client.PutObject(ctx, bucketName, "test/hello.txt", testData, "text/plain")
+	err = client.putObject(ctx, bucketName, "test/hello.txt", testData, "text/plain")
 	assert.NoError(t, err, "Failed to create object")
 
 	jsonData := []byte(`{"message": "Hello from SeaweedFS", "timestamp": "2024-01-01T00:00:00Z"}`)
-	err = client.PutObject(ctx, bucketName, "data/sample.json", jsonData, "application/json")
+	err = client.putObject(ctx, bucketName, "data/sample.json", jsonData, "application/json")
 	assert.NoError(t, err, "Failed to upload json object")
 
 	log.Println("Listing buckets...")
-	buckets, err := client.ListBuckets(ctx)
+	buckets, err := client.listBuckets(ctx)
 	assert.NoError(t, err, "Failed to list buckets")
 	assert.Greater(t, len(buckets), 0, "No buckets found")
 
@@ -61,7 +61,7 @@ func TestS3Client(t *testing.T) {
 
 	// Example 6: Object metadata
 	fmt.Println("\n=== Example 6: Object Metadata ===")
-	metadata, err := client.HeadObject(ctx, bucketName, "test/hello.txt")
+	metadata, err := client.headObject(ctx, bucketName, "test/hello.txt")
 	if err != nil {
 		log.Printf("Failed to get object metadata: %v", err)
 	} else {
@@ -72,7 +72,7 @@ func TestS3Client(t *testing.T) {
 
 	// Example 7: Copy object
 	fmt.Println("\n=== Example 7: Copy Object ===")
-	err = client.CopyObject(ctx, bucketName, "test/hello.txt", bucketName, "test/hello_copy.txt")
+	err = client.copyObject(ctx, bucketName, "test/hello.txt", bucketName, "test/hello_copy.txt")
 	if err != nil {
 		log.Printf("Failed to copy object: %v", err)
 	} else {
@@ -81,7 +81,7 @@ func TestS3Client(t *testing.T) {
 
 	// Example 8: Check if object exists
 	fmt.Println("\n=== Example 8: Check Object Existence ===")
-	exists, err := client.ObjectExists(ctx, bucketName, "test/hello.txt")
+	exists, err := client.objectExists(ctx, bucketName, "test/hello.txt")
 	if err != nil {
 		log.Printf("Failed to check object existence: %v", err)
 	} else {
@@ -90,7 +90,7 @@ func TestS3Client(t *testing.T) {
 
 	// Example 9: Generate presigned URL
 	fmt.Println("\n=== Example 9: Generate Presigned URL ===")
-	presignedURL, err := client.GeneratePresignedURL(ctx, bucketName, "test/hello.txt", 1*time.Hour)
+	presignedURL, err := client.generatePresignedURLGet(ctx, bucketName, "test/hello.txt", 1*time.Hour)
 	if err != nil {
 		log.Printf("Failed to generate presigned URL: %v", err)
 	} else {
@@ -104,7 +104,7 @@ func TestS3Client(t *testing.T) {
 		largeData[i] = byte(i % 256)
 	}
 
-	err = client.UploadLargeFile(ctx, bucketName, "large/big_file.bin", largeData, 6*1024*1024)
+	err = client.uploadLargeFile(ctx, bucketName, "large/big_file.bin", largeData, 6*1024*1024)
 	if err != nil {
 		log.Printf("Failed to upload large file: %v", err)
 	} else {
@@ -116,7 +116,7 @@ func TestS3Client(t *testing.T) {
 	//objectsToDelete := []string{"test/hello.txt", "test/hello_copy.txt", "data/sample.json", "large/big_file.bin"}
 
 	//for _, key := range objectsToDelete {
-	//	err = client.DeleteObject(ctx, bucketName, key)
+	//	err = client.deleteObject(ctx, bucketName, key)
 	//	if err != nil {
 	//		log.Printf("Failed to delete object %s: %v", key, err)
 	//	} else {
