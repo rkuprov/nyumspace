@@ -34,11 +34,11 @@ func TestUserEndpoints(t *testing.T) {
 	testConfig := check.Init(chi.NewRouter())
 	testConfig.RouteFunc = RegisterUser(u)
 	testConfig.Path = "/register"
-	testConfig.Body = `{
+	testConfig.SetBodyString(`{
 	"username": "testuser",
 	"email": "testuser@nyum.space",
 	"password": "testpassword"
-	}`
+	}`)
 	// Create a test user
 	resp, err := testConfig.Run(ctx)
 	assert.NoError(t, err)
@@ -52,10 +52,10 @@ func TestUserEndpoints(t *testing.T) {
 
 	// Test login with the created user
 	testConfig.Path = "/portal/login"
-	testConfig.Body = `{
+	testConfig.SetBodyString(`{
 				"email": "testuser@nyum.space",
 				"password": "testpassword"
-			}`
+			}`)
 	testConfig.Path = "/portal/login"
 
 	testConfig.RouteFunc = LoginUser(u)
@@ -98,7 +98,7 @@ func TestUserEndpoints(t *testing.T) {
 	testConfig.RouteFunc = UpdateUser(u)
 	testConfig.Path = "/portal/portal"
 	testConfig.WithHeaders(check.Header(auth.AuthorizationHeader, sessionToken))
-	testConfig.Body = string(update)
+	testConfig.SetBodyString(string(update))
 	resp, err = testConfig.Run(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -113,7 +113,6 @@ func TestUserEndpoints(t *testing.T) {
 	assert.Equal(t, got.Email, "updated@nyum.space")
 
 	testConfig.Path = "/portal/portal"
-	testConfig.Body = `{}`
 	testConfig.RouteFunc = DeleteUser(u)
 	testConfig.WithHeaders(check.Header(auth.AuthorizationHeader, sessionToken))
 	testConfig.WithMiddlewares(m.Session)
