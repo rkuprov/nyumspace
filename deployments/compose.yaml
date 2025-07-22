@@ -35,13 +35,12 @@ services:
 
   localstack-s3:
     image: localstack/localstack:s3-latest
-    restart: always
     ports:
       - "4566:4566"  # LocalStack Gateway
     networks:
       - nyum_network
     volumes:
-      - /localstack:/tmp/localstack
+      - localstack:/localstack/data
 
 volumes:
   pgdata:

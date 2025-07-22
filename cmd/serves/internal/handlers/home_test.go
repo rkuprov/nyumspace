@@ -38,11 +38,11 @@ func TestHomeEndpoints(t *testing.T) {
 	testConfig := check.Init(chi.NewRouter())
 	testConfig.RouteFunc = RegisterUser(u)
 	testConfig.Path = "/register"
-	testConfig.Body = `{
+	testConfig.SetBodyString(`{
 		"username": "testuser",
 		"email": "testuser@nyum.space",
 		"password": "testpassword"
-	}`
+	}`)
 
 	resp, err := testConfig.Run(ctx)
 	require.NoError(t, err)
@@ -62,7 +62,7 @@ func TestHomeEndpoints(t *testing.T) {
 	testConfig.WithHeaders(check.Header(auth.AuthorizationHeader, sessionToken))
 	testConfig.RouteFunc = CreateHome(h)
 	testConfig.Path = "/homes"
-	testConfig.Body = `{
+	testConfig.SetBodyString(`{
 		"name": "Test Home",
 		"street_address_1": "123 Test St",
 		"street_address_2": "Apt 1",
@@ -73,7 +73,7 @@ func TestHomeEndpoints(t *testing.T) {
 		"description": "A test home",
 		"tags": ["test", "home"],
 		"image_url": "https://example.com/image.jpg"
-	}`
+	}`)
 
 	resp, err = testConfig.Run(ctx)
 	assert.NoError(t, err)
@@ -89,7 +89,6 @@ func TestHomeEndpoints(t *testing.T) {
 	testConfig.RouteFunc = GetHome(h)
 	testConfig.Path = fmt.Sprintf("/homes/%s", homeID)
 	testConfig.URLPattern = "/homes/{home-id}"
-	testConfig.Body = ""
 	testConfig.WithMiddlewares(m.Session)
 	testConfig.WithHeaders(check.Header(auth.AuthorizationHeader, sessionToken))
 
@@ -107,7 +106,7 @@ func TestHomeEndpoints(t *testing.T) {
 	testConfig.RouteFunc = UpdateHome(h)
 	testConfig.Path = fmt.Sprintf("/homes/%s", homeID)
 	testConfig.URLPattern = "/homes/{home-id}"
-	testConfig.Body = `{
+	testConfig.SetBodyString(`{
 		"name": "Updated Test Home",
 		"street_address_1": "456 Updated St",
 		"city": "Updated City",
@@ -116,7 +115,7 @@ func TestHomeEndpoints(t *testing.T) {
 		"country": "USA",
 		"description": "An updated test home",
 		"tags": ["updated", "test", "home"]
-	}`
+	}`)
 	testConfig.WithMiddlewares(m.Session)
 	testConfig.WithHeaders(check.Header(auth.AuthorizationHeader, sessionToken))
 
@@ -137,7 +136,6 @@ func TestHomeEndpoints(t *testing.T) {
 	// Test getting all homes for user
 	testConfig.RouteFunc = GetAllHomesForUser(h)
 	testConfig.Path = "/homes/all"
-	testConfig.Body = ""
 	testConfig.WithMiddlewares(m.Session)
 	testConfig.WithHeaders(check.Header(auth.AuthorizationHeader, sessionToken))
 
@@ -155,7 +153,6 @@ func TestHomeEndpoints(t *testing.T) {
 	testConfig.RouteFunc = DeleteHome(h)
 	testConfig.Path = fmt.Sprintf("/homes/%s", homeID)
 	testConfig.URLPattern = "/homes/{home-id}"
-	testConfig.Body = ""
 	testConfig.WithMiddlewares(m.Session)
 	testConfig.WithHeaders(check.Header(auth.AuthorizationHeader, sessionToken))
 
@@ -187,11 +184,11 @@ func TestHomeEndpointsUnauthorized(t *testing.T) {
 	testConfig := check.Init(chi.NewRouter())
 	testConfig.RouteFunc = RegisterUser(u)
 	testConfig.Path = "/register"
-	testConfig.Body = `{
+	testConfig.SetBodyString(`{
 		"username": "user1",
 		"email": "user1@nyum.space",
 		"password": "password1"
-	}`
+	}`)
 
 	resp, err := testConfig.Run(ctx)
 	require.NoError(t, err)
@@ -201,11 +198,11 @@ func TestHomeEndpointsUnauthorized(t *testing.T) {
 	require.NotEmpty(t, sessionToken1)
 
 	// Create second user
-	testConfig.Body = `{
+	testConfig.SetBodyString(`{
 		"username": "user2",
 		"email": "user2@nyum.space",
 		"password": "password2"
-	}`
+	}`)
 
 	resp, err = testConfig.Run(ctx)
 	require.NoError(t, err)
@@ -219,7 +216,7 @@ func TestHomeEndpointsUnauthorized(t *testing.T) {
 	testConfig.WithHeaders(check.Header(auth.AuthorizationHeader, sessionToken1))
 	testConfig.RouteFunc = CreateHome(h)
 	testConfig.Path = "/homes"
-	testConfig.Body = `{
+	testConfig.SetBodyString(`{
 		"name": "User1 Home",
 		"street_address_1": "123 User1 St",
 		"city": "User1 City",
@@ -227,7 +224,7 @@ func TestHomeEndpointsUnauthorized(t *testing.T) {
 		"zip_code": "11111",
 		"country": "USA",
 		"description": "User1's home"
-	}`
+	}`)
 
 	resp, err = testConfig.Run(ctx)
 	require.NoError(t, err)
@@ -243,7 +240,6 @@ func TestHomeEndpointsUnauthorized(t *testing.T) {
 	testConfig.RouteFunc = GetHome(h)
 	testConfig.Path = fmt.Sprintf("/homes/%s", homeID)
 	testConfig.URLPattern = "/homes/{home-id}"
-	testConfig.Body = ""
 	testConfig.WithMiddlewares(m.Session)
 	testConfig.WithHeaders(check.Header(auth.AuthorizationHeader, sessionToken2))
 
@@ -254,10 +250,10 @@ func TestHomeEndpointsUnauthorized(t *testing.T) {
 	// User 2 tries to update User 1's home (should be unauthorized)
 	testConfig.RouteFunc = UpdateHome(h)
 	testConfig.Path = fmt.Sprintf("/homes/%s", homeID)
-	testConfig.Body = `{
+	testConfig.SetBodyString(`{
 		"name": "Hacked Home",
 		"description": "This should not work"
-	}`
+	}`)
 	testConfig.WithMiddlewares(m.Session)
 	testConfig.WithHeaders(check.Header(auth.AuthorizationHeader, sessionToken2))
 
@@ -268,7 +264,6 @@ func TestHomeEndpointsUnauthorized(t *testing.T) {
 	// User 2 tries to delete User 1's home (should be unauthorized)
 	testConfig.RouteFunc = DeleteHome(h)
 	testConfig.Path = fmt.Sprintf("/homes/%s", homeID)
-	testConfig.Body = ""
 	testConfig.WithMiddlewares(m.Session)
 	testConfig.WithHeaders(check.Header(auth.AuthorizationHeader, sessionToken2))
 
