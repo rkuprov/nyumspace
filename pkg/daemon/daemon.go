@@ -125,7 +125,8 @@ func newDaemon(ctx context.Context, cfg config.Cfg, opts ...DaemonOpt) (Daemon, 
 		BaseContext: func(_ net.Listener) context.Context {
 			return baseCtx
 		},
-		Handler: router,
+		Handler:     router,
+		ReadTimeout: 4 * time.Second,
 	}
 	httpServer.RegisterOnShutdown(cancelInflightRequests)
 
