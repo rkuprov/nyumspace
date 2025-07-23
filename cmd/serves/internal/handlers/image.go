@@ -13,6 +13,7 @@ import (
 
 	"github.com/rkuprov/nyumspace/cmd/serves/internal/homes"
 	"github.com/rkuprov/nyumspace/pkg/auth"
+	"github.com/rkuprov/nyumspace/pkg/nyum"
 	"github.com/rkuprov/nyumspace/pkg/rest"
 )
 
@@ -25,7 +26,7 @@ func GetHomeImage(h *homes.Homes) http.HandlerFunc {
 			return
 		}
 
-		imageID := chi.URLParam(r, "imageID")
+		imageID := chi.URLParam(r, "image-id")
 		if imageID == "" {
 			rest.ErrValidation(w, errors.New("no image id provided"))
 			return
@@ -151,16 +152,12 @@ func UploadHomeImage(h *homes.Homes) http.HandlerFunc {
 			return
 		}
 
-		// Return success response
-		response := map[string]interface{}{
-			"image_id": imageID,
-			"home_id":  homeID,
-		}
-
-		rest.OK(w, rest.Result[any]{
-			Data:    []any{response},
-			Message: "Image uploaded successfully",
-		})
+		rest.Created(
+			w,
+			nyum.ImageCreateResponse{
+				ImageID: imageID,
+				HomeID:  homeID,
+			})
 	}
 }
 
@@ -173,7 +170,7 @@ func DeleteHomeImage(h *homes.Homes) http.HandlerFunc {
 			return
 		}
 
-		imageID := chi.URLParam(r, "imageID")
+		imageID := chi.URLParam(r, "image-id")
 		if imageID == "" {
 			rest.ErrValidation(w, errors.New("no image id provided"))
 			return
@@ -212,10 +209,12 @@ func DeleteHomeImage(h *homes.Homes) http.HandlerFunc {
 			rest.ErrInternal(w, fmt.Errorf("failed to delete image from S3: %w", err))
 			return
 		}
-
 		// Return success response
-		rest.OK(w, rest.Result[any]{
-			Message: "Image deleted successfully",
-		})
+		rest.ResultOK(
+			w,
+			rest.Result[any]{
+				Message: "Image deleted successfully",
+			},
+		)
 	}
 }

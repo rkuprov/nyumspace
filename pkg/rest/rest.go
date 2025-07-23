@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/ydb-platform/ydb-go-sdk/v3/log"
 )
@@ -13,6 +14,15 @@ type Result[T any] struct {
 	Data    []T      `json:"data,omitempty"`
 	Message string   `json:"message,omitempty"`
 	Errors  []string `json:"errors,omitempty"`
+}
+
+func (r *Result[T]) Unpack(input string) error {
+	err := json.NewDecoder(strings.NewReader(input)).Decode(r)
+	if err != nil {
+		return fmt.Errorf("failed to decode JSON: %w", err)
+	}
+
+	return nil
 }
 
 // Add to rest.go
@@ -80,6 +90,10 @@ func OK[T any](w http.ResponseWriter, data ...T) {
 		Data:    append([]T(nil), data...),
 		Message: "OK",
 	})
+}
+
+func ResultOK(w http.ResponseWriter, result Result[any]) {
+	sendJSON(w, http.StatusOK, result)
 }
 
 func Mixed[T any](w http.ResponseWriter, status int, result Result[T]) {

@@ -92,3 +92,8 @@ type HomeDeleteResponse struct {
 type UserHomesRequest struct {
 	UserId string
 }
+
+type ImageCreateResponse struct {
+	HomeID  string `json:"home_id"`
+	ImageID string `json:"image_id"`
+}
