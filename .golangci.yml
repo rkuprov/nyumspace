@@ -1,65 +1,20 @@
+version: 2
 run:
   timeout: 10m
   issues-exit-code: 1
   tests: true
 
-output:
-  formats: colored-line-number
-  print-issued-lines: true
-  print-linter-name: true
-
-linters-settings:
-  errcheck:
-    check-type-assertions: true
-    check-blank: false
-
-  govet:
-    enable-all: true
-
-  gocyclo:
-    min-complexity: 15
-
-  gofmt:
-    simplify: true
-
-  goimports:
-    local-prefixes: github.com/rkuprov/nyumspace
-
-  golint:
-    min-confidence: 0.8
-
-  goconst:
-    min-len: 3
-    min-occurrences: 3
-
-  misspell:
-    locale: US
-
-  lll:
-    line-length: 140
-
-  unparam:
-    check-exported: false
-
-  nakedret:
-    max-func-lines: 30
-
-  prealloc:
-    simple: true
-    range-loops: true
-    for-loops: false
-
 linters:
   enable:
-    - gosimple
     - govet
     - ineffassign
     - staticcheck
-    - typecheck
+    - gocognit
+    - goconst
+    - gocritic
     - unused
+    - gosec
     - gocyclo
-    - gofmt
-    - goimports
     - goconst
     - misspell
     - lll
@@ -73,41 +28,74 @@ linters:
   disable:
     - errcheck
 
-issues:
-  exclude-rules:
-    # Exclude some linters from running on tests files
-    - path: _test\.go
-      linters:
-        - gocyclo
-        - errcheck
-        - dupl
-        - gosec
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: false
 
-  exclude-files:
-    - ".*\\.pb\\.go$"
-    - ".*_generated\\.go$"
-    # Exclude lll issues for long lines with go:generate
-  skip-dirs:
-    - vendor
-    - bin
-    - migrations
-    - linters:
-        - lll
-      source: "^//go:generate "
+    govet:
+      enable-all: true
 
-    # Exclude specific issues in daemon.go if needed
-    - path: pkg/daemon/daemon\.go
-      text: "G104: Errors unhandled"
-      linters:
-        - gosec
+    gocyclo:
+      min-complexity: 15
 
-  exclude-use-default: false
-  max-issues-per-linter: 0
-  max-same-issues: 0
-  new: false
+    goconst:
+      min-len: 3
+      min-occurrences: 3
+
+    misspell:
+      locale: US
+
+    lll:
+      line-length: 140
+
+    unparam:
+      check-exported: false
+
+    nakedret:
+      max-func-lines: 30
+
+    prealloc:
+      simple: true
+      range-loops: true
+      for-loops: false
+
+  exclusions:
+    generated: lax
+    rules:
+      - path: _test\.go
+        linters:
+          - gocyclo
+          - goimports
+          - govet
+          - staticcheck
+          - unused
+          - gosimple
+          - ineffassign
+          - lll
+          - unparam
+          - nakedret
+          - prealloc
+    paths:
+        - "vendor/*"
+        - "testdata/*"
+        - "examples/*"
+        - "mocks/*"
+        - "mockgen/*"
+        - "cmd/*"
+        - "pkg/gen/*"
+
+output:
+  formats:
+    text:
+      path: "stdout"
+      print-linter-name: true
+      print-issued-lines: true
+      colors: true
+
 
 severity:
-  default-severity: error
+  default: error
   rules:
     - linters:
         - misspell
