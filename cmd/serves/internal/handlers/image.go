@@ -56,7 +56,11 @@ func GetHomeImage(h *homes.Homes) http.HandlerFunc {
 			rest.ErrInternal(w, err)
 			return
 		}
-		defer imageReader.Close()
+		defer func() {
+			if imageReader.Close() != nil {
+				log.Error(fmt.Errorf("failed to close image. err: %w", err))
+			}
+		}()
 
 		// Determine content type from image key extension
 		ext := filepath.Ext(imageKey)
@@ -125,7 +129,11 @@ func UploadHomeImage(h *homes.Homes) http.HandlerFunc {
 			rest.ErrBadRequest(w, err)
 			return
 		}
-		defer file.Close()
+		defer func() {
+			if file.Close() != nil {
+				log.Error(fmt.Errorf("failed to close file. err: %w", err))
+			}
+		}()
 
 		// Upload to S3
 		imageKey, err := h.Store.AddImage(r.Context(), userID, header.Filename, file)
@@ -144,9 +152,9 @@ func UploadHomeImage(h *homes.Homes) http.HandlerFunc {
 			err2 := h.Store.DeleteImage(r.Context(), userID, imageKey)
 			if err2 != nil {
 				rest.ErrInternal(w, errors.Join(err2, err))
-				log.Error(fmt.Errorf("failed to delete image from S3 after DB insert failure: %w", err2))
+				log.Error(fmt.Errorf("failed to save image to db: %w", err2))
 			} else {
-				rest.ErrInternal(w, fmt.Errorf("failed to delete image from S3 after DB insert failure: %w", err))
+				rest.ErrInternal(w, fmt.Errorf("failed to save image to db: %w", err))
 				log.Error(fmt.Errorf("failed to save image record: %w", err))
 			}
 			return
@@ -191,7 +199,7 @@ func DeleteHomeImage(h *homes.Homes) http.HandlerFunc {
 		// Verify user owns this image
 		if ownerID != userID {
 			rest.ErrUnauthorized(w, errors.New("not authorized"))
-			log.Error(fmt.Errorf("not authorized. User ID: %s, Image ID: %s, Ownder ID: %s", userID, imageID, ownerID))
+			log.Error(fmt.Errorf("not authorized. User ID: %s, Image ID: %s, Owner ID: %s", userID, imageID, ownerID))
 			return
 		}
 
@@ -206,7 +214,7 @@ func DeleteHomeImage(h *homes.Homes) http.HandlerFunc {
 			"DELETE FROM nyum_images WHERE id = $1",
 			imageID)
 		if err != nil {
-			rest.ErrInternal(w, fmt.Errorf("failed to delete image from S3: %w", err))
+			rest.ErrInternal(w, fmt.Errorf("failed to delete image from DB: %w", err))
 			return
 		}
 		// Return success response
