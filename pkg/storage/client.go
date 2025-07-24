@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"slices"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -36,6 +37,30 @@ func NewStorageClient(ctx context.Context, cfg *config.S3Aws) (*Client, error) {
 		o.BaseEndpoint = aws.String(cfg.BaseEndpoint)
 	})
 	log.Printf("Using S3 endpoint: %s", cfg.BaseEndpoint)
+
+	resp, err := client.ListBuckets(ctx, &s3.ListBucketsInput{})
+	if err != nil {
+		panic("Failed to list buckets: " + err.Error())
+	}
+	existing := make([]string, 0, len(resp.Buckets))
+	for _, bucket := range resp.Buckets {
+		if bucket.Name == nil {
+			continue
+		}
+		existing = append(existing, *bucket.Name)
+	}
+	for _, bucket := range []string{"images", "docs"} {
+		if slices.Contains(existing, bucket) {
+			continue
+		}
+		log.Println("Creating bucket:", bucket)
+		if _, err := client.CreateBucket(ctx, &s3.CreateBucketInput{
+			Bucket: aws.String(bucket),
+		}); err != nil {
+			panic("Failed to create bucket " + bucket + ": " + err.Error())
+		}
+	}
+
 	return &Client{client: client}, nil
 }
 
@@ -168,8 +193,8 @@ func (c *Client) ObjectExists(ctx context.Context, bucketName, key string) (bool
 	return true, nil
 }
 
-// GeneratePresignedURL generates a presigned URL for object access
-func (c *Client) GeneratePresignedURL(ctx context.Context, bucketName, key string, expiration time.Duration) (string, error) {
+// GeneratePresignedURLGet generates a presigned URL for object access
+func (c *Client) GeneratePresignedURLGet(ctx context.Context, bucketName, key string, expiration time.Duration) (string, error) {
 	presignClient := s3.NewPresignClient(c.client)
 
 	request, err := presignClient.PresignGetObject(ctx, &s3.GetObjectInput{

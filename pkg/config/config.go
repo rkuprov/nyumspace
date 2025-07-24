@@ -34,7 +34,6 @@ type S3Aws struct {
 }
 
 func NewConfig() (Cfg, error) {
-	log.Printf("NYUMSPACE_ENV is set to %s\n", os.Getenv("NYUMSPACE_ENV"))
 	switch os.Getenv("NYUMSPACE_ENV") {
 	case "local":
 		err := loadFromLocal()

@@ -90,7 +90,7 @@ func TestS3Client(t *testing.T) {
 
 	// Example 9: Generate presigned URL
 	fmt.Println("\n=== Example 9: Generate Presigned URL ===")
-	presignedURL, err := client.GeneratePresignedURL(ctx, bucketName, "test/hello.txt", 1*time.Hour)
+	presignedURL, err := client.GeneratePresignedURLGet(ctx, bucketName, "test/hello.txt", 1*time.Hour)
 	if err != nil {
 		log.Printf("Failed to generate presigned URL: %v", err)
 	} else {
