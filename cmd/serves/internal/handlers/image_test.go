@@ -155,7 +155,7 @@ func TestImageHandlers(t *testing.T) {
 			m.Session,
 			m.AllowUser,
 		},
-		Method: http.MethodGet,
+		Method: http.MethodDelete,
 	}
 	deleteOut, err := deleteTest.Run(t.Context())
 	assert.NoError(t, err)

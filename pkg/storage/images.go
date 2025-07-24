@@ -16,6 +16,8 @@ import (
 
 const (
 	maxImageSize = 5 * 1024 * 1024 // 5MB
+	bucketImages = "images"
+	bucketDocs   = "docs"
 )
 
 func (c *Client) AddImage(ctx context.Context, userID, filename string, payload io.Reader) (string, error) {
@@ -35,7 +37,7 @@ func (c *Client) AddImage(ctx context.Context, userID, filename string, payload 
 		return "", fmt.Errorf("unsupported image format: %s", filepath.Ext(filename))
 	}
 
-	//Read up to maxImageSize + 1 bytes to check size
+	// Read up to maxImageSize + 1 bytes to check size
 	contents, err := io.ReadAll(io.LimitReader(payload, maxImageSize+1))
 	if err != nil && !errors.Is(err, io.EOF) {
 		return "", fmt.Errorf("failed to read image data: %w", err)
