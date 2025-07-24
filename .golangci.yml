@@ -59,6 +59,16 @@ linters:
       simple: true
       range-loops: true
       for-loops: false
+    gosec:
+        severity: medium
+        confidence: high
+        config:
+         global:
+           generated: false
+        excludes:
+          - G103
+          - G112
+
 
   exclusions:
     generated: lax
@@ -71,7 +81,6 @@ linters:
           - staticcheck
           - unused
           - gosimple
-          - ineffassign
           - lll
           - unparam
           - nakedret
@@ -82,7 +91,6 @@ linters:
         - "examples/*"
         - "mocks/*"
         - "mockgen/*"
-        - "cmd/*"
         - "pkg/gen/*"
 
 output:
