@@ -105,7 +105,8 @@ func TestAdminServerInternalErrors(t *testing.T) {
 		Router:     chi.NewRouter(),
 		RouteFunc:  AdminGetHomesForUser(mockA),
 		URLPattern: "/admin/{user-id}/homes",
-		Path:       "/admin/user123/homes",
+		URLPattern: "/admin/users/{user-id}/homes",
+		Path:       "/admin/users/user123/homes",
 	}
 	out, err = tc.Run(t.Context())
 	assert.NoError(t, err)
