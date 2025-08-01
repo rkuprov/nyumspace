@@ -93,7 +93,8 @@ func TestAdminServerInternalErrors(t *testing.T) {
 		Router:     chi.NewRouter(),
 		RouteFunc:  AdminGetUser(mockA),
 		URLPattern: "/admin/{user-id}",
-		Path:       "/admin/user123",
+		URLPattern: "/admin/users/{user-id}",
+		Path:       "/admin/users/user123",
 	}
 	out, err = tc.Run(t.Context())
 	assert.NoError(t, err)
