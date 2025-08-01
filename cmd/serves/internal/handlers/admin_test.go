@@ -92,7 +92,6 @@ func TestAdminServerInternalErrors(t *testing.T) {
 	tc = &checkpoint.TestConfig{
 		Router:     chi.NewRouter(),
 		RouteFunc:  AdminGetUser(mockA),
-		URLPattern: "/admin/{user-id}",
 		URLPattern: "/admin/users/{user-id}",
 		Path:       "/admin/users/user123",
 	}
@@ -104,7 +103,6 @@ func TestAdminServerInternalErrors(t *testing.T) {
 	tc = &checkpoint.TestConfig{
 		Router:     chi.NewRouter(),
 		RouteFunc:  AdminGetHomesForUser(mockA),
-		URLPattern: "/admin/{user-id}/homes",
 		URLPattern: "/admin/users/{user-id}/homes",
 		Path:       "/admin/users/user123/homes",
 	}
@@ -116,7 +114,6 @@ func TestAdminServerInternalErrors(t *testing.T) {
 	tc = &checkpoint.TestConfig{
 		Router:     chi.NewRouter(),
 		RouteFunc:  AdminDeleteUser(mockA),
-		URLPattern: "/admin/{user-id}",
 		URLPattern: "/admin/users/{user-id}",
 		Path:       "/admin/users/user123",
 	}
