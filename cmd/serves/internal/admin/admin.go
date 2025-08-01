@@ -16,6 +16,18 @@ import (
 	"github.com/rkuprov/nyumspace/pkg/nyum"
 )
 
+type Server interface {
+	GetUser(ctx context.Context, req *nyum.UserRequest) (*nyum.UserResponse, error)
+	GetAllUsers(ctx context.Context) ([]*nyum.UserResponse, error)
+	DeleteUser(ctx context.Context, req *nyum.UserDeleteRequest) (*nyum.UserDeleteResponse, error)
+	GetHome(ctx context.Context, req *nyum.HomeRequest) (*nyum.HomeResponse, error)
+	GetAllHomes(ctx context.Context) ([]*nyum.HomeResponse, error)
+	DeleteHome(ctx context.Context, req *nyum.HomeDeleteRequest) (*nyum.HomeDeleteResponse, error)
+	GetHomesForUser(ctx context.Context, req *nyum.UserHomesRequest) ([]*nyum.HomeResponse, error)
+}
+
+var _ Server = (*Admin)(nil)
+
 type Admin struct {
 	DB *pgxpool.Pool
 }

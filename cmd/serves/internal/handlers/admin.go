@@ -3,7 +3,6 @@ package handlers
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -16,7 +15,7 @@ import (
 )
 
 // GetAllUsers creates a handler for retrieving all users
-func GetAllUsers(a *admin.Admin) func(w http.ResponseWriter, r *http.Request) {
+func GetAllUsers(a admin.Server) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		resp, err := a.GetAllUsers(r.Context())
 		if err != nil {
@@ -29,7 +28,7 @@ func GetAllUsers(a *admin.Admin) func(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetAllHomes creates a handler for retrieving all homes
-func GetAllHomes(a *admin.Admin) func(w http.ResponseWriter, r *http.Request) {
+func GetAllHomes(a admin.Server) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		resp, err := a.GetAllHomes(r.Context())
 		if err != nil {
@@ -42,9 +41,9 @@ func GetAllHomes(a *admin.Admin) func(w http.ResponseWriter, r *http.Request) {
 }
 
 // AdminDeleteUser creates a handler for deleting a user
-func AdminDeleteUser(a *admin.Admin) func(w http.ResponseWriter, r *http.Request) {
+func AdminDeleteUser(a admin.Server) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userID := chi.URLParam(r, "userID")
+		userID := chi.URLParam(r, "user-id")
 		if userID == "" {
 			rest.ErrValidation(w, errors.New("userID is required"))
 			return
@@ -65,9 +64,9 @@ func AdminDeleteUser(a *admin.Admin) func(w http.ResponseWriter, r *http.Request
 }
 
 // AdminDeleteHome creates a handler for deleting a home
-func AdminDeleteHome(a *admin.Admin) func(w http.ResponseWriter, r *http.Request) {
+func AdminDeleteHome(a admin.Server) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		homeID := chi.URLParam(r, "homeID")
+		homeID := chi.URLParam(r, "home-id")
 		if homeID == "" {
 			rest.ErrValidation(w, errors.New("homeID is required"))
 			return
@@ -88,7 +87,7 @@ func AdminDeleteHome(a *admin.Admin) func(w http.ResponseWriter, r *http.Request
 }
 
 // AdminGetHome creates a handler for retrieving a home by ID
-func AdminGetHome(a *admin.Admin) func(w http.ResponseWriter, r *http.Request) {
+func AdminGetHome(a admin.Server) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		homeID := chi.URLParam(r, "home-id")
 		if homeID == "" {
@@ -115,7 +114,7 @@ func AdminGetHome(a *admin.Admin) func(w http.ResponseWriter, r *http.Request) {
 }
 
 // AdminGetHomesForUser creates a handler for retrieving all homes for a specific user
-func AdminGetHomesForUser(a *admin.Admin) func(w http.ResponseWriter, r *http.Request) {
+func AdminGetHomesForUser(a admin.Server) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := chi.URLParam(r, "user-id")
 		if userID == "" {
@@ -127,7 +126,6 @@ func AdminGetHomesForUser(a *admin.Admin) func(w http.ResponseWriter, r *http.Re
 			UserId: userID,
 		})
 		if err != nil {
-			log.Println(err)
 			rest.ErrInternal(w, fmt.Errorf("failed to get homes for user: %w", err))
 			return
 		}
@@ -137,9 +135,9 @@ func AdminGetHomesForUser(a *admin.Admin) func(w http.ResponseWriter, r *http.Re
 }
 
 // AdminGetUser creates a handler for retrieving a user by ID
-func AdminGetUser(a *admin.Admin) func(w http.ResponseWriter, r *http.Request) {
+func AdminGetUser(a admin.Server) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		userID := chi.URLParam(r, "userID")
+		userID := chi.URLParam(r, "user-id")
 		if userID == "" {
 			rest.ErrValidation(w, errors.New("userID is required"))
 			return
