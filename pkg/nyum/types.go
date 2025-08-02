@@ -53,6 +53,11 @@ type Room struct {
 type Appliance struct {
 	nyumpb.Appliance
 }
+
+type HouseAppliance struct {
+	nyumpb.ApplianceMetadata
+	Appliance nyumpb.Appliance `json:"appliance"`
+}
 type Code struct {
 	nyumpb.Code
 }

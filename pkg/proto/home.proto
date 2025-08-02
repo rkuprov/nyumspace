@@ -13,11 +13,25 @@ message Appliance {
   string id = 1;
   string name = 2;
   string type = 3;
-  Room location = 4;
+  string brand = 4;
   string model = 5;
   string manufacturer = 6;
   string serial_number = 7;
   string part_number = 8;
+  string manual_url = 9;
+  string default_image_url = 10;
+}
+message ApplianceMetadata {
+  string house_id = 1;
+  Room location = 2;
+  string date_purchased = 3;
+  string date_installed = 4;
+  string notes = 5;
+  string warranty_expiration = 6;
+  string warranty_information = 7;
+  string image_url = 8;
+  string purchase_price = 9;
+  string purchase_receipt_url = 10;
 }
 
 message Code {
