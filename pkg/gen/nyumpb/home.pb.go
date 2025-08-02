@@ -91,17 +91,19 @@ func (x *Room) GetFloor() int32 {
 }
 
 type Appliance struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Type          string                 `protobuf:"bytes,3,opt,name=type,proto3" json:"type,omitempty"`
-	Location      *Room                  `protobuf:"bytes,4,opt,name=location,proto3" json:"location,omitempty"`
-	Model         string                 `protobuf:"bytes,5,opt,name=model,proto3" json:"model,omitempty"`
-	Manufacturer  string                 `protobuf:"bytes,6,opt,name=manufacturer,proto3" json:"manufacturer,omitempty"`
-	SerialNumber  string                 `protobuf:"bytes,7,opt,name=serial_number,json=serialNumber,proto3" json:"serial_number,omitempty"`
-	PartNumber    string                 `protobuf:"bytes,8,opt,name=part_number,json=partNumber,proto3" json:"part_number,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name            string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Type            string                 `protobuf:"bytes,3,opt,name=type,proto3" json:"type,omitempty"`
+	Brand           string                 `protobuf:"bytes,4,opt,name=brand,proto3" json:"brand,omitempty"`
+	Model           string                 `protobuf:"bytes,5,opt,name=model,proto3" json:"model,omitempty"`
+	Manufacturer    string                 `protobuf:"bytes,6,opt,name=manufacturer,proto3" json:"manufacturer,omitempty"`
+	SerialNumber    string                 `protobuf:"bytes,7,opt,name=serial_number,json=serialNumber,proto3" json:"serial_number,omitempty"`
+	PartNumber      string                 `protobuf:"bytes,8,opt,name=part_number,json=partNumber,proto3" json:"part_number,omitempty"`
+	ManualUrl       string                 `protobuf:"bytes,9,opt,name=manual_url,json=manualUrl,proto3" json:"manual_url,omitempty"`
+	DefaultImageUrl string                 `protobuf:"bytes,10,opt,name=default_image_url,json=defaultImageUrl,proto3" json:"default_image_url,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *Appliance) Reset() {
@@ -155,11 +157,11 @@ func (x *Appliance) GetType() string {
 	return ""
 }
 
-func (x *Appliance) GetLocation() *Room {
+func (x *Appliance) GetBrand() string {
 	if x != nil {
-		return x.Location
+		return x.Brand
 	}
-	return nil
+	return ""
 }
 
 func (x *Appliance) GetModel() string {
@@ -190,6 +192,136 @@ func (x *Appliance) GetPartNumber() string {
 	return ""
 }
 
+func (x *Appliance) GetManualUrl() string {
+	if x != nil {
+		return x.ManualUrl
+	}
+	return ""
+}
+
+func (x *Appliance) GetDefaultImageUrl() string {
+	if x != nil {
+		return x.DefaultImageUrl
+	}
+	return ""
+}
+
+type ApplianceMetadata struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	HouseId             string                 `protobuf:"bytes,1,opt,name=house_id,json=houseId,proto3" json:"house_id,omitempty"`
+	Location            *Room                  `protobuf:"bytes,2,opt,name=location,proto3" json:"location,omitempty"`
+	DatePurchased       string                 `protobuf:"bytes,3,opt,name=date_purchased,json=datePurchased,proto3" json:"date_purchased,omitempty"`
+	DateInstalled       string                 `protobuf:"bytes,4,opt,name=date_installed,json=dateInstalled,proto3" json:"date_installed,omitempty"`
+	Notes               string                 `protobuf:"bytes,5,opt,name=notes,proto3" json:"notes,omitempty"`
+	WarrantyExpiration  string                 `protobuf:"bytes,6,opt,name=warranty_expiration,json=warrantyExpiration,proto3" json:"warranty_expiration,omitempty"`
+	WarrantyInformation string                 `protobuf:"bytes,7,opt,name=warranty_information,json=warrantyInformation,proto3" json:"warranty_information,omitempty"`
+	ImageUrl            string                 `protobuf:"bytes,8,opt,name=image_url,json=imageUrl,proto3" json:"image_url,omitempty"`
+	PurchasePrice       string                 `protobuf:"bytes,9,opt,name=purchase_price,json=purchasePrice,proto3" json:"purchase_price,omitempty"`
+	PurchaseReceiptUrl  string                 `protobuf:"bytes,10,opt,name=purchase_receipt_url,json=purchaseReceiptUrl,proto3" json:"purchase_receipt_url,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *ApplianceMetadata) Reset() {
+	*x = ApplianceMetadata{}
+	mi := &file_home_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ApplianceMetadata) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ApplianceMetadata) ProtoMessage() {}
+
+func (x *ApplianceMetadata) ProtoReflect() protoreflect.Message {
+	mi := &file_home_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ApplianceMetadata.ProtoReflect.Descriptor instead.
+func (*ApplianceMetadata) Descriptor() ([]byte, []int) {
+	return file_home_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ApplianceMetadata) GetHouseId() string {
+	if x != nil {
+		return x.HouseId
+	}
+	return ""
+}
+
+func (x *ApplianceMetadata) GetLocation() *Room {
+	if x != nil {
+		return x.Location
+	}
+	return nil
+}
+
+func (x *ApplianceMetadata) GetDatePurchased() string {
+	if x != nil {
+		return x.DatePurchased
+	}
+	return ""
+}
+
+func (x *ApplianceMetadata) GetDateInstalled() string {
+	if x != nil {
+		return x.DateInstalled
+	}
+	return ""
+}
+
+func (x *ApplianceMetadata) GetNotes() string {
+	if x != nil {
+		return x.Notes
+	}
+	return ""
+}
+
+func (x *ApplianceMetadata) GetWarrantyExpiration() string {
+	if x != nil {
+		return x.WarrantyExpiration
+	}
+	return ""
+}
+
+func (x *ApplianceMetadata) GetWarrantyInformation() string {
+	if x != nil {
+		return x.WarrantyInformation
+	}
+	return ""
+}
+
+func (x *ApplianceMetadata) GetImageUrl() string {
+	if x != nil {
+		return x.ImageUrl
+	}
+	return ""
+}
+
+func (x *ApplianceMetadata) GetPurchasePrice() string {
+	if x != nil {
+		return x.PurchasePrice
+	}
+	return ""
+}
+
+func (x *ApplianceMetadata) GetPurchaseReceiptUrl() string {
+	if x != nil {
+		return x.PurchaseReceiptUrl
+	}
+	return ""
+}
+
 type Code struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -203,7 +335,7 @@ type Code struct {
 
 func (x *Code) Reset() {
 	*x = Code{}
-	mi := &file_home_proto_msgTypes[2]
+	mi := &file_home_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -215,7 +347,7 @@ func (x *Code) String() string {
 func (*Code) ProtoMessage() {}
 
 func (x *Code) ProtoReflect() protoreflect.Message {
-	mi := &file_home_proto_msgTypes[2]
+	mi := &file_home_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -228,7 +360,7 @@ func (x *Code) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Code.ProtoReflect.Descriptor instead.
 func (*Code) Descriptor() ([]byte, []int) {
-	return file_home_proto_rawDescGZIP(), []int{2}
+	return file_home_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Code) GetId() string {
@@ -285,7 +417,7 @@ type HomeCreationRequest struct {
 
 func (x *HomeCreationRequest) Reset() {
 	*x = HomeCreationRequest{}
-	mi := &file_home_proto_msgTypes[3]
+	mi := &file_home_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -297,7 +429,7 @@ func (x *HomeCreationRequest) String() string {
 func (*HomeCreationRequest) ProtoMessage() {}
 
 func (x *HomeCreationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_home_proto_msgTypes[3]
+	mi := &file_home_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -310,7 +442,7 @@ func (x *HomeCreationRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HomeCreationRequest.ProtoReflect.Descriptor instead.
 func (*HomeCreationRequest) Descriptor() ([]byte, []int) {
-	return file_home_proto_rawDescGZIP(), []int{3}
+	return file_home_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *HomeCreationRequest) GetName() string {
@@ -394,7 +526,7 @@ type HomeCreationResponse struct {
 
 func (x *HomeCreationResponse) Reset() {
 	*x = HomeCreationResponse{}
-	mi := &file_home_proto_msgTypes[4]
+	mi := &file_home_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -406,7 +538,7 @@ func (x *HomeCreationResponse) String() string {
 func (*HomeCreationResponse) ProtoMessage() {}
 
 func (x *HomeCreationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_home_proto_msgTypes[4]
+	mi := &file_home_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -419,7 +551,7 @@ func (x *HomeCreationResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HomeCreationResponse.ProtoReflect.Descriptor instead.
 func (*HomeCreationResponse) Descriptor() ([]byte, []int) {
-	return file_home_proto_rawDescGZIP(), []int{4}
+	return file_home_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *HomeCreationResponse) GetHomeId() string {
@@ -453,7 +585,7 @@ type HomeRequest struct {
 
 func (x *HomeRequest) Reset() {
 	*x = HomeRequest{}
-	mi := &file_home_proto_msgTypes[5]
+	mi := &file_home_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -465,7 +597,7 @@ func (x *HomeRequest) String() string {
 func (*HomeRequest) ProtoMessage() {}
 
 func (x *HomeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_home_proto_msgTypes[5]
+	mi := &file_home_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -478,7 +610,7 @@ func (x *HomeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HomeRequest.ProtoReflect.Descriptor instead.
 func (*HomeRequest) Descriptor() ([]byte, []int) {
-	return file_home_proto_rawDescGZIP(), []int{5}
+	return file_home_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *HomeRequest) GetHomeId() string {
@@ -510,7 +642,7 @@ type HomeResponse struct {
 
 func (x *HomeResponse) Reset() {
 	*x = HomeResponse{}
-	mi := &file_home_proto_msgTypes[6]
+	mi := &file_home_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -522,7 +654,7 @@ func (x *HomeResponse) String() string {
 func (*HomeResponse) ProtoMessage() {}
 
 func (x *HomeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_home_proto_msgTypes[6]
+	mi := &file_home_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -535,7 +667,7 @@ func (x *HomeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HomeResponse.ProtoReflect.Descriptor instead.
 func (*HomeResponse) Descriptor() ([]byte, []int) {
-	return file_home_proto_rawDescGZIP(), []int{6}
+	return file_home_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *HomeResponse) GetHomeId() string {
@@ -656,7 +788,7 @@ type HomeUpdateRequest struct {
 
 func (x *HomeUpdateRequest) Reset() {
 	*x = HomeUpdateRequest{}
-	mi := &file_home_proto_msgTypes[7]
+	mi := &file_home_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -668,7 +800,7 @@ func (x *HomeUpdateRequest) String() string {
 func (*HomeUpdateRequest) ProtoMessage() {}
 
 func (x *HomeUpdateRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_home_proto_msgTypes[7]
+	mi := &file_home_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -681,7 +813,7 @@ func (x *HomeUpdateRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HomeUpdateRequest.ProtoReflect.Descriptor instead.
 func (*HomeUpdateRequest) Descriptor() ([]byte, []int) {
-	return file_home_proto_rawDescGZIP(), []int{7}
+	return file_home_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *HomeUpdateRequest) GetName() string {
@@ -771,7 +903,7 @@ type HomeUpdateResponse struct {
 
 func (x *HomeUpdateResponse) Reset() {
 	*x = HomeUpdateResponse{}
-	mi := &file_home_proto_msgTypes[8]
+	mi := &file_home_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -783,7 +915,7 @@ func (x *HomeUpdateResponse) String() string {
 func (*HomeUpdateResponse) ProtoMessage() {}
 
 func (x *HomeUpdateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_home_proto_msgTypes[8]
+	mi := &file_home_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -796,7 +928,7 @@ func (x *HomeUpdateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HomeUpdateResponse.ProtoReflect.Descriptor instead.
 func (*HomeUpdateResponse) Descriptor() ([]byte, []int) {
-	return file_home_proto_rawDescGZIP(), []int{8}
+	return file_home_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *HomeUpdateResponse) GetMessage() string {
@@ -823,7 +955,7 @@ type HomeDeleteRequest struct {
 
 func (x *HomeDeleteRequest) Reset() {
 	*x = HomeDeleteRequest{}
-	mi := &file_home_proto_msgTypes[9]
+	mi := &file_home_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -835,7 +967,7 @@ func (x *HomeDeleteRequest) String() string {
 func (*HomeDeleteRequest) ProtoMessage() {}
 
 func (x *HomeDeleteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_home_proto_msgTypes[9]
+	mi := &file_home_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -848,7 +980,7 @@ func (x *HomeDeleteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HomeDeleteRequest.ProtoReflect.Descriptor instead.
 func (*HomeDeleteRequest) Descriptor() ([]byte, []int) {
-	return file_home_proto_rawDescGZIP(), []int{9}
+	return file_home_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *HomeDeleteRequest) GetHomeId() string {
@@ -869,7 +1001,7 @@ type HomeDeleteResponse struct {
 
 func (x *HomeDeleteResponse) Reset() {
 	*x = HomeDeleteResponse{}
-	mi := &file_home_proto_msgTypes[10]
+	mi := &file_home_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -881,7 +1013,7 @@ func (x *HomeDeleteResponse) String() string {
 func (*HomeDeleteResponse) ProtoMessage() {}
 
 func (x *HomeDeleteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_home_proto_msgTypes[10]
+	mi := &file_home_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -894,7 +1026,7 @@ func (x *HomeDeleteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HomeDeleteResponse.ProtoReflect.Descriptor instead.
 func (*HomeDeleteResponse) Descriptor() ([]byte, []int) {
-	return file_home_proto_rawDescGZIP(), []int{10}
+	return file_home_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *HomeDeleteResponse) GetHomeId() string {
@@ -928,18 +1060,34 @@ const file_home_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x14\n" +
-	"\x05floor\x18\x04 \x01(\x05R\x05floor\"\xeb\x01\n" +
+	"\x05floor\x18\x04 \x01(\x05R\x05floor\"\xa4\x02\n" +
 	"\tAppliance\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
-	"\x04type\x18\x03 \x01(\tR\x04type\x12&\n" +
-	"\blocation\x18\x04 \x01(\v2\n" +
-	".nyum.RoomR\blocation\x12\x14\n" +
+	"\x04type\x18\x03 \x01(\tR\x04type\x12\x14\n" +
+	"\x05brand\x18\x04 \x01(\tR\x05brand\x12\x14\n" +
 	"\x05model\x18\x05 \x01(\tR\x05model\x12\"\n" +
 	"\fmanufacturer\x18\x06 \x01(\tR\fmanufacturer\x12#\n" +
 	"\rserial_number\x18\a \x01(\tR\fserialNumber\x12\x1f\n" +
 	"\vpart_number\x18\b \x01(\tR\n" +
-	"partNumber\"s\n" +
+	"partNumber\x12\x1d\n" +
+	"\n" +
+	"manual_url\x18\t \x01(\tR\tmanualUrl\x12*\n" +
+	"\x11default_image_url\x18\n" +
+	" \x01(\tR\x0fdefaultImageUrl\"\x94\x03\n" +
+	"\x11ApplianceMetadata\x12\x19\n" +
+	"\bhouse_id\x18\x01 \x01(\tR\ahouseId\x12&\n" +
+	"\blocation\x18\x02 \x01(\v2\n" +
+	".nyum.RoomR\blocation\x12%\n" +
+	"\x0edate_purchased\x18\x03 \x01(\tR\rdatePurchased\x12%\n" +
+	"\x0edate_installed\x18\x04 \x01(\tR\rdateInstalled\x12\x14\n" +
+	"\x05notes\x18\x05 \x01(\tR\x05notes\x12/\n" +
+	"\x13warranty_expiration\x18\x06 \x01(\tR\x12warrantyExpiration\x121\n" +
+	"\x14warranty_information\x18\a \x01(\tR\x13warrantyInformation\x12\x1b\n" +
+	"\timage_url\x18\b \x01(\tR\bimageUrl\x12%\n" +
+	"\x0epurchase_price\x18\t \x01(\tR\rpurchasePrice\x120\n" +
+	"\x14purchase_receipt_url\x18\n" +
+	" \x01(\tR\x12purchaseReceiptUrl\"s\n" +
 	"\x04Code\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
@@ -1032,22 +1180,23 @@ func file_home_proto_rawDescGZIP() []byte {
 	return file_home_proto_rawDescData
 }
 
-var file_home_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_home_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_home_proto_goTypes = []any{
 	(*Room)(nil),                 // 0: nyum.Room
 	(*Appliance)(nil),            // 1: nyum.Appliance
-	(*Code)(nil),                 // 2: nyum.Code
-	(*HomeCreationRequest)(nil),  // 3: nyum.HomeCreationRequest
-	(*HomeCreationResponse)(nil), // 4: nyum.HomeCreationResponse
-	(*HomeRequest)(nil),          // 5: nyum.HomeRequest
-	(*HomeResponse)(nil),         // 6: nyum.HomeResponse
-	(*HomeUpdateRequest)(nil),    // 7: nyum.HomeUpdateRequest
-	(*HomeUpdateResponse)(nil),   // 8: nyum.HomeUpdateResponse
-	(*HomeDeleteRequest)(nil),    // 9: nyum.HomeDeleteRequest
-	(*HomeDeleteResponse)(nil),   // 10: nyum.HomeDeleteResponse
+	(*ApplianceMetadata)(nil),    // 2: nyum.ApplianceMetadata
+	(*Code)(nil),                 // 3: nyum.Code
+	(*HomeCreationRequest)(nil),  // 4: nyum.HomeCreationRequest
+	(*HomeCreationResponse)(nil), // 5: nyum.HomeCreationResponse
+	(*HomeRequest)(nil),          // 6: nyum.HomeRequest
+	(*HomeResponse)(nil),         // 7: nyum.HomeResponse
+	(*HomeUpdateRequest)(nil),    // 8: nyum.HomeUpdateRequest
+	(*HomeUpdateResponse)(nil),   // 9: nyum.HomeUpdateResponse
+	(*HomeDeleteRequest)(nil),    // 10: nyum.HomeDeleteRequest
+	(*HomeDeleteResponse)(nil),   // 11: nyum.HomeDeleteResponse
 }
 var file_home_proto_depIdxs = []int32{
-	0, // 0: nyum.Appliance.location:type_name -> nyum.Room
+	0, // 0: nyum.ApplianceMetadata.location:type_name -> nyum.Room
 	1, // [1:1] is the sub-list for method output_type
 	1, // [1:1] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
@@ -1060,14 +1209,14 @@ func file_home_proto_init() {
 	if File_home_proto != nil {
 		return
 	}
-	file_home_proto_msgTypes[7].OneofWrappers = []any{}
+	file_home_proto_msgTypes[8].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_home_proto_rawDesc), len(file_home_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
