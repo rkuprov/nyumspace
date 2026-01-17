@@ -1,5 +1,5 @@
 # Base image with Go, Postgres client, Goose, and River
-FROM golang:1.24.3-bullseye
+FROM golang:1.25.6
 
 # Install PostgreSQL client
 RUN apt-get update && apt-get install -y \
