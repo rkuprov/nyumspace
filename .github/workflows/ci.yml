@@ -76,7 +76,7 @@ jobs:
     - name: Install dependencies
       run: go mod download
     - name: Install riverqueue CLI
-      run: go install github.com/riverqueue/river/cmd/river@latest
+      run: go install github.com/riverqueue/river/applications/river@latest
     - name: Setup riverqueue migrations
       env:
         RIVER_DB_URL: postgres://${{ secrets.PGUSER }}:${{ secrets.PGPASSWORD }}@${{ vars.PGHOST }}:${{ vars.PGPORT }}/${{ vars.PGDATABASE }}?sslmode=disable
@@ -84,7 +84,7 @@ jobs:
         river migrate-up --line main --database-url $RIVER_DB_URL
 
     - name: Install goose
-      run: go install github.com/pressly/goose/v3/cmd/goose@latest
+      run: go install github.com/pressly/goose/v3/applications/goose@latest
     - name: Run goose migrations
       env:
         GOOSE_DRIVER: postgres

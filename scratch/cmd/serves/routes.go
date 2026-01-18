@@ -35,7 +35,7 @@ func setupRoutes(d daemon.Daemon) {
 		}
 	})
 
-	// Admin routes
+	// Admin handlers
 	a := admin.NewAdmin(d)
 	d.Router.Route("/admin", func(r chi.Router) {
 		r.Use(m.Session)
@@ -50,7 +50,7 @@ func setupRoutes(d daemon.Daemon) {
 		r.Delete("/homes/{homeID}", handlers2.AdminDeleteHome(&a)) // Delete home
 	})
 
-	// User routes
+	// User handlers
 	u := users.NewUsers(&d)
 	d.Router.Post("/register", handlers2.RegisterUser(u)) // Register a new user
 	d.Router.Post("/login", handlers2.LoginUser(u))       // Login
@@ -63,7 +63,7 @@ func setupRoutes(d daemon.Daemon) {
 		r.Post("/api/logout", handlers2.LogoutUser(u))   // Logout
 	})
 
-	// Home routes
+	// Home handlers
 	h := homes.NewHomes(&d) // Pass storage to homes service
 	d.Router.Route("/api/portal/homes", func(r chi.Router) {
 		r.Use(m.Session)
