@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+
+	"github.com/rkuprov/nyumspace/applications/nyumspace/api/internal/handlers"
 )
 
 func main() {
@@ -13,8 +15,16 @@ func main() {
 		panic(err)
 	}
 
-	err = http.ListenAndServe(":8080", r)
+	err = http.ListenAndServe(":8000", r)
 	if err != nil {
 		panic(err)
 	}
+}
+func SetupRoutes(router *chi.Mux) error {
+	router.Get("/", handlers.Home())
+	router.Route("/", func(r chi.Router) {
+		r.Get("/health", handlers.HealthFunc())
+		r.Get("/hello", handlers.Hello())
+	})
+	return nil
 }

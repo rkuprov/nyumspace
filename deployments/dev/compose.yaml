@@ -1,0 +1,99 @@
+# Use postgres/example user/password credentials
+name: allmy-temporal-test
+services:
+  postgres:
+    image: postgres
+    container_name: postgres
+    restart: always
+    shm_size: 256mb
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pgpassword}
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_DB: ${POSTGRES_DB:-allmydb}
+      SQL_HOST: ${SQL_HOST:-localhost}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - nyum
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U admin -d allmydb" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  temporal:
+    container_name: temporal
+    image: temporalio/server:latest
+    depends_on:
+      - postgres
+    environment:
+      - DB=postgres12
+      - DB_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_USER=${POSTGRES_USER:-admin}
+      - POSTGRES_PWD=${POSTGRES_PASSWORD:-pgpassword}
+      - POSTGRES_SEEDS=postgres
+      - VISIBILITY_POSTGRES_SEEDS=postgres
+      - VISIBILITY_POSTGRES_USER=${POSTGRES_USER:-admin}
+      - VISIBILITY_POSTGRES_PWD=${POSTGRES_PASSWORD:-pgpassword}
+      - TEMPORAL_ADDRESS=${TEMPORAL_ADDRESS:-localhost:7233}
+    restart: always
+    networks:
+      - nyum
+    ports:
+      - "7233:7233"
+      - "3000:3000"
+    volumes:
+      - temporal-data:/etc/temporal/config/dynamicconfig
+  temporal-admin-tools:
+      container_name: temporal-admin-tools
+      image: temporalio/admin-tools:latest
+      depends_on:
+        temporal:
+            condition: service_started
+        postgres:
+           condition: service_healthy
+      environment:
+        - TEMPORAL_ADDRESS=${TEMPORAL_ADDRESS:-temporal:7233}
+        - TEMPORAL_CLI_ADDRESS=${TEMPORAL_CLI_ADDRESS:-temporal:7233}
+        - SQL_HOST=postgres
+        - SQL_USER=admin
+        - SQL_PASSWORD=pgpassword
+        - SQL_PLUGIN=postgres12
+      networks:
+        - nyum
+      stdin_open: true
+      tty: true
+      entrypoint: /etc/temporal/entrypoint.sh
+      volumes:
+        - ./scripts/entrypoint.sh:/etc/temporal/entrypoint.sh:ro
+  temporal-ui:
+      container_name: temporal-ui
+      depends_on:
+        - temporal
+      environment:
+        - TEMPORAL_ADDRESS=${TEMPORAL_ADDRESS:-temporal:7233}
+        - TEMPORAL_CORS_ORIGINS=http://temporal:3000
+      image: temporalio/ui:latest
+      networks:
+        - nyum
+      ports:
+        - 8080:8080
+  pgadmin:
+    image: dpage/pgadmin4:snapshot
+    restart: always
+    ports:
+      - "80:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: kuprov@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: adminpwd
+    networks:
+      - nyum
+
+volumes:
+  pgdata:
+  temporal-data:
+
+networks:
+  nyum:
+

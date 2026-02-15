@@ -3,12 +3,35 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+
+	"go.temporal.io/sdk/client"
+
+	"github.com/rkuprov/nyumspace/applications/nyumspace/business/workflows"
 )
 
 func Home() http.HandlerFunc {
+	c, err := client.Dial(client.Options{
+		Namespace: "nyumspace",
+		HostPort:  "localhost:7233",
+	})
+	if err != nil {
+		panic(err)
+	}
 	return func(w http.ResponseWriter, r *http.Request) {
+		opts := client.StartWorkflowOptions{
+			ID:        "hello-workflow",
+			TaskQueue: "api",
+		}
+		we, err := c.ExecuteWorkflow(r.Context(), opts, workflows.Hello, "roman")
+		if err != nil {
+			http.Error(w, "Failed to start workflow", http.StatusInternalServerError)
+			return
+		}
+		var out string
+		we.Get(r.Context(), &out)
+
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, "welcome")
+		_, _ = fmt.Fprintf(w, "%s", out)
 	}
 }
 
