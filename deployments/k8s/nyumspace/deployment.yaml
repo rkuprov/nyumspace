@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nyumspace
+  namespace: nyumspace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nyumspace
+  template:
+    metadata:
+      labels:
+        app: nyumspace
+    spec:
+      containers:
+        - name: nyumspace
+          image: nyumspace:local
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
