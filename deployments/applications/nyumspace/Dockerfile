@@ -1,26 +1,11 @@
 FROM golang:1.25-alpine AS builder
-
 WORKDIR /app
-
-# Copy go mod files first for better caching
 COPY go.mod go.sum ./
 RUN go mod download
-
-# Copy the entire source
 COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o /nyumspace ./applications/nyumspace/main.go
 
-# Build the binary
-RUN CGO_ENABLED=0 GOOS=linux go build -o /api ./applications/nyumspace/api
-
-# Runtime stage
 FROM alpine:3.21
-
-RUN apk --no-cache add ca-certificates
-
-WORKDIR /app
-
-COPY --from=builder /api .
-
+COPY --from=builder /nyumspace /nyumspace
 EXPOSE 8080
-
-ENTRYPOINT ["./api"]
+ENTRYPOINT ["/nyumspace"]

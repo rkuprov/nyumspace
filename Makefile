@@ -1,22 +1,26 @@
-.PHONY: build
+.PHONY: build mk-build mk-up mk-down mk-run
+export IMAGE_NAME=nyumspace
+export IMAGE_TAG=local
 include .env
 export
 
 build:
 	docker build -f deployments/applications/nyumspace/Dockerfile -t $(IMAGE_NAME):$(IMAGE_TAG) .
 
-up:
-	docker-compose -f deployments/dev/compose.yaml up -d
-	sleep 5
-	temporal operator namespace create -n nyumspace
+mk-build:
+	eval $$(minikube docker-env) && docker build -f deployments/applications/nyumspace/Dockerfile -t nyumspace:local .
 
-down:
-	docker-compose -f deployments/dev/compose.yaml down
+mk-up:
+	kubectl apply -f deployments/k8s/nyumspace/namespace.yaml
+	kubectl apply -f deployments/k8s/nyumspace/deployment.yaml
+	kubectl apply -f deployments/k8s/nyumspace/service.yaml
 
-run:
-	go build -o bin/nyumspace-api applications/nyumspace/api/main.go
-	./bin/nyumspace-api
+mk-down:
+	kubectl delete -f deployments/k8s/nyumspace/service.yaml
+	kubectl delete -f deployments/k8s/nyumspace/deployment.yaml
+	kubectl delete -f deployments/k8s/nyumspace/namespace.yaml
 
-workers:
-	go build -o bin/nyumspace-workers applications/nyumspace/api/workers/main.go
-	./bin/nyumspace-workers
+mk-run:
+	kubectl port-forward -n nyumspace svc/nyumspace 8000:8080
+
+
