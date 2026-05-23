@@ -5,7 +5,7 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o /nyumspace ./applications/nyumspace/main.go
 
-FROM alpine:3.21
+FROM scratch
 COPY --from=builder /nyumspace /nyumspace
 EXPOSE 8080
 ENTRYPOINT ["/nyumspace"]
