@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nyumspace
+  namespace: nyumspace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nyumspace
+  template:
+    metadata:
+      labels:
+        app: nyumspace
+    spec:
+      {{- if .Values.postgres.enabled }}
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox
+          command: ['sh', '-c', 'until nc -z postgres 5432; do sleep 2; done']
+      {{- end }}
+      containers:
+        - name: nyumspace
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          {{- if .Values.postgres.enabled }}
+          envFrom:
+            - secretRef:
+                name: postgres-credentials
+          {{- end }}

@@ -4,9 +4,9 @@ metadata:
   name: nyumspace
   namespace: nyumspace
 spec:
-  type: NodePort
+  type: {{ .Values.service.type }}
   selector:
     app: nyumspace
   ports:
-    - port: 8080
-      targetPort: 8080
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.port }}

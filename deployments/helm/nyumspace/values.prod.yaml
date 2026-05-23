@@ -1,0 +1,8 @@
+image:
+  tag: latest
+  pullPolicy: Always
+
+postgres:
+  enabled: false
+
+# Supply DATABASE_URL via external secret in prod

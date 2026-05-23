@@ -1,8 +1,11 @@
-.PHONY: build mk-build mk-up mk-down mk-run
+.PHONY: build mk-build helm-up helm-down
 export IMAGE_NAME=nyumspace
 export IMAGE_TAG=local
 include .env
 export
+
+HELM_CHART=deployments/helm/nyumspace
+HELM_RELEASE=nyumspace
 
 build:
 	docker build -f deployments/applications/nyumspace/Dockerfile -t $(IMAGE_NAME):$(IMAGE_TAG) .
@@ -10,17 +13,12 @@ build:
 mk-build:
 	eval $$(minikube docker-env) && docker build -f deployments/applications/nyumspace/Dockerfile -t nyumspace:local .
 
-mk-up:
-	kubectl apply -f deployments/k8s/nyumspace/namespace.yaml
-	kubectl apply -f deployments/k8s/nyumspace/deployment.yaml
-	kubectl apply -f deployments/k8s/nyumspace/service.yaml
+helm-up:
+	minikube tunnel &
+	helm upgrade --install $(HELM_RELEASE) $(HELM_CHART)
 
-mk-down:
-	kubectl delete -f deployments/k8s/nyumspace/service.yaml
-	kubectl delete -f deployments/k8s/nyumspace/deployment.yaml
-	kubectl delete -f deployments/k8s/nyumspace/namespace.yaml
-
-mk-run:
-	kubectl port-forward -n nyumspace svc/nyumspace 8000:8080
+helm-down:
+	helm uninstall $(HELM_RELEASE)
+	pkill -f "minikube tunnel" || true
 
 
