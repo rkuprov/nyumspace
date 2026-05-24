@@ -30,6 +30,38 @@ minikube stop       # pause the cluster (state is preserved)
 minikube delete     # wipe the cluster entirely
 ```
 
+### Database migrations
+
+Migrations use [goose](https://github.com/pressly/goose). Files live in `deployments/migrations/`.
+
+**Prerequisites** — install the goose CLI:
+
+```bash
+go install github.com/pressly/goose/v3/cmd/goose@latest
+```
+
+The stack must be running (`make helm-up`) before running migrations. Each target opens a temporary `kubectl port-forward` to reach the ClusterIP postgres service, runs goose, then closes the tunnel.
+
+| Command | Effect |
+|---|---|
+| `make migrate-up` | Apply all pending migrations |
+| `make migrate-down` | Roll back the last migration |
+| `make migrate-status` | Show applied / pending migrations |
+
+Override defaults if needed (e.g. if port 5433 is in use):
+
+```bash
+make migrate-up PG_LOCAL_PORT=5432
+```
+
+**Adding a new migration:**
+
+```bash
+goose -dir deployments/migrations create <name> sql
+```
+
+`make migrate-up-sandbox` and `make migrate-up-prod` are reserved stubs for future environments.
+
 ### Redeploying after a code change
 
 When you change the app and compile a new binary, rebuild the image and do a rolling update:
