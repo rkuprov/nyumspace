@@ -1,0 +1,18 @@
+image:
+  repository: nyumspace
+  tag: local
+  pullPolicy: Never
+
+service:
+  type: LoadBalancer
+  port: 8080
+
+postgres:
+  enabled: true
+  image: postgres:16
+  storage: 5Gi
+  storageClass: standard
+  credentials:
+    user: admin
+    password: pgpassword
+    db: nyumdb
