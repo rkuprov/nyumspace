@@ -535,14 +535,13 @@ DELETE /homes/:id/codes/:codeId         — delete code
 
 ### 10.1 Local Development
 
+Everything runs on minikube, deployed via a Helm chart:
+
 ```
-Docker Compose:
-  - PostgreSQL 16 (with pgvector extension)
-  - Temporal Server + UI
-  - MinIO or LocalStack (S3-compatible storage)
-  - pgAdmin (optional)
-  - API service (hot-reload)
-  - Temporal worker(s)
+  - PostgreSQL 16 StatefulSet (pgvector extension added when Tier 2 needs it)
+  - LocalStack (S3-compatible storage)
+  - API service
+  - Temporal Server + worker(s) — introduced in Phase 1
 ```
 
 ### 10.2 Production Hosting — Options
@@ -570,7 +569,7 @@ Docker Compose:
 
 - **Containerized** — single Dockerfile per service (API, worker)
 - **CI/CD** — GitHub Actions → build → test → push image → deploy
-- **Environments:** `dev` (local compose) → `staging` → `production`
+- **Environments:** `dev` (local minikube) → `staging` → `production`
 - **Database migrations** — goose, run as init container or pre-deploy step
 - **Secrets** — provider's secret management (Fly secrets, Railway variables, AWS SSM)
 
@@ -625,9 +624,9 @@ The first deliverable. Validates the two core assumptions: does the indexing wor
 - [ ] Auth — single user, email/password, sessions. Nothing fancy.
 - [ ] One home per user — create it, name it, done
 - [ ] Document upload → OCR → full-text index
-- [ ] Make/model entry → agent fetches manual → indexes it
-- [ ] Search bar — keyword search against the index, returns results with document references
-- [ ] Local dev environment (Docker Compose)
+- [ ] Add manual by URL → downloads the PDF → indexes it (make/model lookup agent deferred to a later phase)
+- [ ] Keyword search against the index, returns results with document references
+- [ ] Local dev environment (minikube + Helm)
 
 **What's explicitly out:**
 - Rooms, structured appliance entities, schedules
@@ -637,10 +636,9 @@ The first deliverable. Validates the two core assumptions: does the indexing wor
 - Production deployment
 
 **What this teaches us:**
-- Do people actually onboard? (model number entry + manual fetch removes the biggest friction point)
+- Do people actually onboard? (paste-a-URL manual fetch lowers the friction; the make/model agent comes later)
 - What do they search for? (informs Tier 2 design)
 - Is OCR quality good enough for real documents?
-- Is the manual-fetching MCP reliable across manufacturers?
 
 ### Phase 1 — Tier 1 Complete
 
