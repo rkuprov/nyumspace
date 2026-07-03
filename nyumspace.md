@@ -235,6 +235,8 @@ Honest objections to this project, and how the current design addresses (or does
 
 ### 5.1 Core Principle: The Home Outlives Its Users
 
+> **Naming note (2026-07-03, [interview dec. 5](plans/phase0-interview.md)):** internally the first-class entity is a **space** — a physical volume a person has ownership/charge over. A home is the primary case, but an office or a warehouse fits the same model. Schema and API say `space`; "home" is end-user wording, decided separately.
+
 The home is the first-class entity. Its knowledge — every manual, receipt, schedule, annotation, and service record — belongs to the home, not to any individual user. Users bind to a home with a role. When ownership changes, the knowledge stays. A home sale is not a data export — it's a transfer of the owner binding.
 
 This means:
@@ -618,27 +620,33 @@ Everything runs on minikube, deployed via a Helm chart:
 
 ### Phase 0 — MVP: Get Documents In, Find Them Again — [detailed plan](phase0.md)
 
-The first deliverable. Validates the two core assumptions: does the indexing work, and do people find it useful enough to keep using? Everything else waits until this is answered.
+The first deliverable, split in two ([interview dec. 1](plans/phase0-interview.md)): **0a** validates the *technical* assumptions (does OCR + indexing work on real documents?) against a measurable corpus benchmark; **0b** puts the system in front of 2–3 external testers to start answering the *user* assumptions. Everything else waits until both are answered.
 
-**What's in:**
+**What's in — 0a:**
 - [ ] Auth — single user, email/password, sessions. Nothing fancy.
-- [ ] One home per user — create it, name it, done
-- [ ] Document upload → OCR → full-text index
-- [ ] Add manual by URL → downloads the PDF → indexes it (make/model lookup agent deferred to a later phase)
+- [ ] One **space** per user — create it, name it, done
+- [ ] Document upload → async ingestion (Temporal) → OCR → full-text index
 - [ ] Keyword search against the index, returns results with document references
-- [ ] Local dev environment (minikube + Helm)
+- [ ] Corpus benchmark: ~30 real documents, ≥90% ingest / ≥85% findable top-3 — the exit meter
+- [ ] Local dev environment (minikube + Helm, incl. Temporal)
+
+**What's in — 0b:**
+- [ ] Add manual by URL → downloads the PDF → indexes it (make/model lookup agent deferred to a later phase)
+- [ ] MCP server (upload/list/search as tools) — the tester interface; no web UI in Phase 0
+- [ ] Hosted deployment with an explicit privacy floor; 2–3 external testers with real documents
+- [ ] Go/no-go verdict memo for Phase 1
 
 **What's explicitly out:**
 - Rooms, structured appliance entities, schedules
 - Roles and access control beyond single-user login
-- Multiple homes
+- Multiple spaces
 - Any LLM calls (no extraction, no RAG, no AI at query time)
-- Production deployment
+- Web frontend
 
 **What this teaches us:**
-- Do people actually onboard? (paste-a-URL manual fetch lowers the friction; the make/model agent comes later)
-- What do they search for? (informs Tier 2 design)
-- Is OCR quality good enough for real documents?
+- 0a: Is OCR quality good enough for real documents? Does Postgres full-text search hold the findability bar?
+- 0b: Do people actually onboard? (paste-a-URL manual fetch lowers the friction; the make/model agent comes later)
+- 0b: What do they search for? (informs Tier 2 design)
 
 ### Phase 1 — Tier 1 Complete
 
@@ -665,7 +673,7 @@ The AI layer on top of the indexed repository.
 
 - [ ] Home transfer — reassign ownership, knowledge stays with the home
 - [ ] Smart home platform integrations
-- [ ] MCP exposed as a tool for the home assistant — same MCP from Phase 0 now callable by the AI layer
+- [ ] MCP exposed as a tool for the home assistant — the MCP server built in Phase 0b now callable by the AI layer
 - [ ] Multi-home dashboard
 - [ ] Mobile app or PWA
 
